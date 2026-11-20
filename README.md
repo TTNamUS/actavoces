@@ -19,6 +19,18 @@ It records microphone and system audio, transcribes locally, adds optional speak
 > [!WARNING]
 > ActaVoces is usable and is being used, but it is still open-source pre-1.0 software without comprehensive multi-platform QA. It has seen ongoing Windows use, lighter macOS use, and Linux currently lacks active QA.
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/library-light.png" alt="Library in light theme" width="49%">
+  <img src="screenshots/library-dark-processing.png" alt="Library in dark theme with a recording being processed" width="49%">
+</p>
+
+<p align="center">
+  <img src="screenshots/recording-dark.png" alt="Recording page with player, pipeline and transcript" width="49%">
+  <img src="screenshots/record-bar.png" alt="Floating record bar" width="49%">
+</p>
+
 **Pronunciation:** `AHK-tah VOH-kays`  
 **Name:** `acta` means records or proceedings, and `voces` means voices.
 
@@ -26,6 +38,7 @@ It records microphone and system audio, transcribes locally, adds optional speak
 
 ## Table of Contents
 
+- [Screenshots](#screenshots)
 - [Why ActaVoces?](#why-actavoces)
 - [Download](#download)
 - [First Run](#first-run)
