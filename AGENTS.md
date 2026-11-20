@@ -198,17 +198,11 @@ src/components/settings/                      6 sections: general, recording, tr
   ui/Settings.view.tsx, SettingsNav, Settings*Section.view.tsx
 
 
-src/components/setup/
-  ui/
-    SetupRoute.view.tsx                       first-run/setup route
+src/components/setup/                         first-run step flow (runtime, speakers)
+  containers/ hooks/ ui/
 
-src/components/recording-overlay/
-  containers/
-    RecordingOverlay.container.tsx
-  hooks/
-    useRecordingOverlay.hook.ts
-  ui/
-    RecordingOverlay.view.tsx                 floating capture overlay
+src/components/recording-overlay/              record bar pill (transparent window)
+  containers/ hooks/ ui/
 
 src/components/updates/
   hooks/
