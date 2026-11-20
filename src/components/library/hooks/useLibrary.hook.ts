@@ -22,6 +22,8 @@ export const useLibrary = () => {
   const app = useAppContext();
   const query = useSignal('');
   const deleteTarget = useSignal<Recording | null>(null);
+  const renameId = useSignal<string | null>(null);
+  const renameDraft = useSignal('');
   const { recording: actions } = app.actions;
   const snapshot = app.data.snapshot.value;
   const summaryEnabled = snapshot.settings.summaryEnabled;
@@ -37,7 +39,31 @@ export const useLibrary = () => {
     durationLabel:
       recording.durationSeconds === null ? '—' : formatClock(recording.durationSeconds),
     onOpen: () => app.navigation.navigateTo(recordingPath(recording.id)),
+    isRenaming: renameId.value === recording.id,
+    renameValue: renameDraft.value,
+    onRenameInput: (event: JSX.TargetedEvent<HTMLInputElement>) => {
+      renameDraft.value = event.currentTarget.value;
+    },
+    onRenameKeyDown: (event: JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Escape') {
+        renameId.value = null;
+      }
+    },
+    onRenameSubmit: async (event: JSX.TargetedEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (await actions.renameTitleTo(recording, renameDraft.value)) {
+        renameId.value = null;
+      }
+    },
     menuItems: [
+      {
+        label: 'Rename',
+        onSelect: () => {
+          renameDraft.value = recording.title;
+          renameId.value = recording.id;
+        }
+      },
       {
         label: 'Open folder',
         onSelect: () => {

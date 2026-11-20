@@ -51,7 +51,7 @@ export const RecordingDetailView = ({ detail }: RecordingDetailViewProps): JSX.E
             class='flex items-center gap-2 rounded-lg bg-amber-soft px-3 py-2 text-[13px]'
             key={`${error.source}-${error.message}`}
           >
-            <IconAlertTriangle aria-hidden='true' class='shrink-0' size={16} stroke={1.75} />
+            <IconAlertTriangle aria-hidden='true' className='shrink-0' size={16} stroke={1.75} />
             {error.source === 'system' ? 'System audio' : 'Microphone'} not captured:{' '}
             {error.message}
           </p>

@@ -23,7 +23,7 @@ export const LibraryView = ({ library }: LibraryViewProps): JSX.Element => (
           <div class='relative flex w-72 items-center'>
             <IconSearch
               aria-hidden='true'
-              class='pointer-events-none absolute left-3 text-ink-3'
+              className='pointer-events-none absolute left-3 text-ink-3'
               size={16}
               stroke={1.75}
             />

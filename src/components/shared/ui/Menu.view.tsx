@@ -14,9 +14,15 @@ interface MenuProps {
   ariaLabel: string;
   class?: string;
   items: MenuItem[];
+  restoreFocus?: boolean;
 }
 
-export const Menu = ({ ariaLabel, class: classProp, items }: MenuProps): JSX.Element => (
+export const Menu = ({
+  ariaLabel,
+  class: classProp,
+  items,
+  restoreFocus = true
+}: MenuProps): JSX.Element => (
   <BaseMenu.Root>
     <BaseMenu.Trigger
       aria-label={ariaLabel}
@@ -29,7 +35,10 @@ export const Menu = ({ ariaLabel, class: classProp, items }: MenuProps): JSX.Ele
     </BaseMenu.Trigger>
     <BaseMenu.Portal>
       <BaseMenu.Positioner align='end' class='z-50 outline-none' sideOffset={4}>
-        <BaseMenu.Popup class='min-w-44 rounded-lg border border-line bg-canvas p-1 shadow-float outline-none'>
+        <BaseMenu.Popup
+          finalFocus={restoreFocus}
+          class='min-w-44 rounded-lg border border-line bg-canvas p-1 shadow-float outline-none'
+        >
           {items.map((item) => (
             <BaseMenu.Item
               class={clsx(

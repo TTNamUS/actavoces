@@ -10,7 +10,7 @@ interface SpinnerProps {
 export const Spinner = ({ class: classProp, size = 16 }: SpinnerProps): JSX.Element => (
   <IconLoader2
     aria-hidden='true'
-    class={clsx('animate-spin text-ink-3', classProp)}
+    className={clsx('animate-spin text-ink-3', classProp)}
     size={size}
     stroke={1.75}
   />

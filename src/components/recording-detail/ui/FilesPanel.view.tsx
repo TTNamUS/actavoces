@@ -22,7 +22,7 @@ export const FilesPanel = ({ detail }: FilesPanelProps): JSX.Element | null =>
               <span class='truncate'>{file.label}</span>
               <IconExternalLink
                 aria-hidden='true'
-                class='shrink-0 text-ink-3'
+                className='shrink-0 text-ink-3'
                 size={14}
                 stroke={1.75}
               />
