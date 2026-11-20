@@ -40,36 +40,10 @@
 
   --shadow-card: 0 1px 2px oklch(var(--shade) / 0.06), 0 1px 1px oklch(var(--shade) / 0.04);
   --shadow-float: 0 12px 32px -8px oklch(var(--shade) / 0.22), 0 2px 6px oklch(var(--shade) / 0.08);
-  --shadow-modal: var(--shadow-float);
 
   --transition-fast: 150ms ease;
   --transition-base: 200ms ease;
   --transition-slow: 300ms ease;
-
-  /* Legacy aliases — removed in Phase 7 once the old views are gone */
-  --color-bg-page: var(--canvas);
-  --color-bg-card: var(--canvas);
-  --color-bg-input: var(--canvas-2);
-  --color-bg-hover: var(--canvas-3);
-  --color-bg-active: var(--canvas-3);
-  --color-text-primary: var(--ink);
-  --color-text-secondary: var(--ink-2);
-  --color-text-muted: var(--ink-3);
-  --color-border-base: var(--line-2);
-  --color-border-focus: var(--ember);
-  --color-accent: var(--ember);
-  --color-accent-light: var(--ember-2);
-  --color-accent-dark: var(--ember-2);
-  --color-accent-secondary: var(--amber);
-  --color-error: var(--ember);
-  --color-error-bg: var(--ember-soft);
-  --color-error-border: var(--ember);
-  --color-success: var(--moss);
-  --color-success-bg: var(--moss-soft);
-  --color-success-border: var(--moss);
-  --color-warning: var(--amber);
-  --color-warning-bg: var(--amber-soft);
-  --color-warning-border: var(--amber);
 }
 
 :root {

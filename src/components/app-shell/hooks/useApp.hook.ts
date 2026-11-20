@@ -87,7 +87,6 @@ export const useApp = () => {
       latestRecordingActions: recordings.latestRecordingActions,
       recordingRows: recordings.recordingRows,
       groupedJobRows: recordings.groupedJobRows,
-      recentRecordingRows: recordings.recentRecordingRows,
       activeJobs: recordings.activeJobs,
       latestRecordingProgress: recordings.latestRecordingProgress,
       latestRecordingPipelineStatus: recordings.latestRecordingPipelineStatus,

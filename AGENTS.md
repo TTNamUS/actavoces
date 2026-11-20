@@ -176,20 +176,10 @@ src/components/recording-detail/              recording page (player, transcript
 src/components/activity/                     pipeline + job history
   hooks/ containers/ ui/
 
-src/components/dashboard/
-  ui/
-    DashboardRoute.view.tsx                   dashboard route
-
-src/components/jobs/
-  ui/
-    JobsRoute.view.tsx                        job monitor route
-
 src/components/recordings/
   hooks/
-    useRecordings.hook.ts
+    useRecordings.hook.ts                     recording actions shared by Library/Detail/Activity
     recording.helpers.ts
-  ui/
-    RecordingsSection.view.tsx                recordings route
 
 src/components/settings/                      6 sections: general, recording, transcription, speakers, ai, system
   containers/ context/ (SettingsProvider)

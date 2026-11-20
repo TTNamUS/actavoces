@@ -9,13 +9,7 @@ import {
 
 describe('routes', () => {
   it('exposes the primary app routes in nav order', () => {
-    expect(navRoutes.map((route) => route.path)).toEqual([
-      '/',
-      '/activity',
-      '/ask',
-      '/settings',
-      '/overview'
-    ]);
+    expect(navRoutes.map((route) => route.path)).toEqual(['/', '/activity', '/ask', '/settings']);
   });
 
   it('keeps Library active on recording detail pages only', () => {

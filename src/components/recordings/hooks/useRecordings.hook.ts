@@ -285,7 +285,6 @@ export const useRecordings = ({ loading, setError, setSnapshot }: UseRecordingsI
       renameSpeaker
     }),
     groupedJobRows: groupedJobRows(openPath, retry),
-    recentRecordingRows: recentRecordingRows(openPath, retry, rerunSummary),
     activeJobs,
     latestRecordingProgress,
     latestRecordingPipelineStatus,
@@ -402,31 +401,6 @@ const recordingRows = ({
         }
       };
     })
-  );
-
-const recentRecordingRows = (
-  openPath: (path: string) => Promise<void>,
-  retry: (recording: Recording) => Promise<void>,
-  rerunSummary: (recording: Recording) => Promise<void>
-) =>
-  useComputed(() =>
-    appSnapshotSignal.value.recordings.slice(0, 5).map((recording) => ({
-      recording,
-      progress: recordingProgress(recording),
-      pipelineStatus: recordingPipelineStatus(recording),
-      canRetry: canRetryRecording(recording),
-      canRerunSummary:
-        appSnapshotSignal.value.settings.summaryEnabled && canRerunSummary(recording),
-      onOpenFolder: () => {
-        void openPath(recording.artifactDirectory);
-      },
-      onRetry: () => {
-        void retry(recording);
-      },
-      onRerunSummary: () => {
-        void rerunSummary(recording);
-      }
-    }))
   );
 
 const groupedJobRows = (

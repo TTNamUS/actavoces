@@ -8,14 +8,12 @@ export const ACTIVITY_PATH = '/activity';
 export const ASK_PATH = '/ask';
 export const SETTINGS_PATH = '/settings';
 export const SETUP_PATH = '/setup';
-export const OVERVIEW_PATH = '/overview';
 
 export const navRoutes: NavRoute[] = [
   { path: LIBRARY_PATH, label: 'Library' },
   { path: ACTIVITY_PATH, label: 'Activity' },
   { path: ASK_PATH, label: 'Ask' },
-  { path: SETTINGS_PATH, label: 'Settings' },
-  { path: OVERVIEW_PATH, label: 'Overview' }
+  { path: SETTINGS_PATH, label: 'Settings' }
 ];
 
 export const recordingPath = (id: string): string => `/recordings/${encodeURIComponent(id)}`;

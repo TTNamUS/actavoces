@@ -1,10 +1,4 @@
-import {
-  IconActivity,
-  IconBooks,
-  IconLayoutDashboard,
-  IconSettings,
-  IconSparkles
-} from '@tabler/icons-react';
+import { IconActivity, IconBooks, IconSettings, IconSparkles } from '@tabler/icons-react';
 import type { DesktopRuntimeStatus } from '../../../types/desktop';
 import type { StatusTone } from '../../../utils/status';
 
@@ -29,8 +23,7 @@ export const NAV_ICON: Record<string, typeof IconBooks> = {
   '/': IconBooks,
   '/activity': IconActivity,
   '/ask': IconSparkles,
-  '/settings': IconSettings,
-  '/overview': IconLayoutDashboard
+  '/settings': IconSettings
 };
 
 export const COMING_SOON_PATHS: string[] = ['/ask'];
