@@ -1,3 +1,4 @@
+mod content;
 #[cfg(test)]
 mod tests;
 
@@ -7,6 +8,7 @@ use std::path::{Path, PathBuf};
 use crate::domain::types::*;
 use crate::utils::civil_datetime;
 
+pub(crate) use content::read_recording_content;
 #[cfg(test)]
 pub(crate) use tests::write_test_wav_file;
 
