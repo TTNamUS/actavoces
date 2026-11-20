@@ -16,7 +16,6 @@ import {
   updateAppSettings
 } from '../services/desktop/app.service';
 import { appErrorSignal, appSnapshotSignal } from '../stores/app.store';
-import { setActiveRoute } from '../stores/route.store';
 import type { AppSettings, AppSnapshot, Recording } from '../types/desktop';
 
 vi.mock('@tauri-apps/api/event', () => ({
@@ -168,7 +167,7 @@ const makeSnapshot = (overrides: Partial<AppSnapshot> = {}): AppSnapshot => ({
 const resetSignals = () => {
   appSnapshotSignal.value = makeSnapshot();
   appErrorSignal.value = null;
-  setActiveRoute('dashboard');
+  window.location.hash = '#/';
   Reflect.deleteProperty(window, '__TAURI_INTERNALS__');
 };
 
@@ -746,12 +745,12 @@ describe('useApp hook', () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
 
     vi.mocked(getAppSnapshot).mockResolvedValue(makeSnapshot());
-    setActiveRoute('settings');
+    window.location.hash = '#/settings';
 
     const { result } = renderHook(() => useApp());
 
     await waitFor(() => {
-      expect(result.current.status.activeRoute.value).toBe('settings');
+      expect(result.current.navigation.location).toBe('/settings');
     });
     act(() => {
       result.current.settings.hotkeyField.onCapture();
@@ -766,11 +765,11 @@ describe('useApp hook', () => {
       );
     });
     act(() => {
-      result.current.navigation[0].onSelect();
+      result.current.navigation.navigateTo('/');
     });
 
     expect(confirm).toHaveBeenCalledWith('Discard unsaved settings changes?');
-    expect(result.current.status.activeRoute.value).toBe('settings');
+    expect(result.current.navigation.location).toBe('/settings');
 
     confirm.mockRestore();
   });
@@ -779,12 +778,12 @@ describe('useApp hook', () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
 
     vi.mocked(getAppSnapshot).mockResolvedValue(makeSnapshot());
-    setActiveRoute('settings');
+    window.location.hash = '#/settings';
 
     const { result } = renderHook(() => useApp());
 
     await waitFor(() => {
-      expect(result.current.status.activeRoute.value).toBe('settings');
+      expect(result.current.navigation.location).toBe('/settings');
     });
     act(() => {
       result.current.settings.hotkeyField.onCapture();
@@ -799,10 +798,12 @@ describe('useApp hook', () => {
       );
     });
     act(() => {
-      result.current.navigation[0].onSelect();
+      result.current.navigation.navigateTo('/');
     });
 
-    expect(result.current.status.activeRoute.value).toBe('dashboard');
+    await waitFor(() => {
+      expect(result.current.navigation.location).toBe('/');
+    });
     expect(result.current.settings.draft.value.hotkey).toBe('CommandOrControl+Shift+Space');
 
     confirm.mockRestore();

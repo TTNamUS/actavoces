@@ -1,43 +1,35 @@
 import type { Signal } from '@preact/signals';
+import { useHashLocation } from 'wouter-preact/use-hash-location';
 import { appSnapshotSignal } from '../../../stores/app.store';
-import {
-  type AppRoute,
-  activeRouteSignal,
-  navigationItems,
-  setActiveRoute
-} from '../../../stores/route.store';
 import type { AppSettings } from '../../../types/desktop';
+import { isSettingsLocation } from '../../../utils/routes';
 
 interface UseAppNavigationInput {
   hasUnsavedSettings: Signal<boolean>;
   resetSettingsDraft: (settings: AppSettings) => void;
 }
 
+interface NavigateOptions {
+  replace?: boolean;
+}
+
 export const useAppNavigation = ({
   hasUnsavedSettings,
   resetSettingsDraft
 }: UseAppNavigationInput) => {
-  const selectRoute = (route: AppRoute) => {
-    if (
-      activeRouteSignal.value === 'settings' &&
-      route !== 'settings' &&
-      hasUnsavedSettings.value
-    ) {
-      const shouldLeave = window.confirm('Discard unsaved settings changes?');
+  const [location, setLocation] = useHashLocation();
 
-      if (!shouldLeave) {
+  const navigateTo = (path: string, options?: NavigateOptions) => {
+    if (isSettingsLocation(location) && !isSettingsLocation(path) && hasUnsavedSettings.value) {
+      if (!window.confirm('Discard unsaved settings changes?')) {
         return;
       }
 
       resetSettingsDraft(appSnapshotSignal.value.settings);
     }
 
-    setActiveRoute(route);
+    setLocation(path, options);
   };
 
-  return navigationItems.map((item) => ({
-    ...item,
-    isActive: item.route === activeRouteSignal.value,
-    onSelect: () => selectRoute(item.route)
-  }));
+  return { location, navigateTo };
 };

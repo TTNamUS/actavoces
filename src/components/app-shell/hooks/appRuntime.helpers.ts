@@ -1,12 +1,4 @@
-import type { AppRoute } from '../../../stores/route.store';
 import type { AppSnapshot, WorkerSetupProgress } from '../../../types/desktop';
-
-export const routeLabel: Record<AppRoute, string> = {
-  dashboard: 'Dashboard',
-  recordings: 'Recordings',
-  jobs: 'Jobs',
-  settings: 'Settings'
-};
 
 export const initialSetupProgress: WorkerSetupProgress = {
   status: 'missing',
