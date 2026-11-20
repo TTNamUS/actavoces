@@ -1,5 +1,11 @@
 import type { JSX } from 'preact';
-import type { AppSettings, AppSettingsUpdate, CaptureDeviceInfo } from '../../../types/desktop';
+import type {
+  AppSettings,
+  AppSettingsUpdate,
+  CaptureDeviceInfo,
+  DesktopRuntimeStatus,
+  ModelInventoryItem
+} from '../../../types/desktop';
 
 export interface SettingsTextField {
   key: keyof AppSettingsUpdate;
@@ -68,14 +74,14 @@ export interface SettingsSelectOption {
   label: string;
 }
 
-interface SettingsFieldHint {
+export interface SettingsFieldHint {
   tone: 'muted' | 'warning';
   title?: string;
   text: string;
   links?: SettingsFieldHintLink[];
 }
 
-interface SettingsFieldHintLink {
+export interface SettingsFieldHintLink {
   href: string;
   label: string;
 }
@@ -197,4 +203,71 @@ export const hotkeyFromKeyboardEvent = (event: KeyboardEvent): string | null => 
   ].filter((modifier): modifier is string => modifier !== null);
 
   return [...modifiers, key].join('+');
+};
+
+export const SETTINGS_SECTIONS = [
+  { id: 'general', label: 'General' },
+  { id: 'recording', label: 'Recording' },
+  { id: 'transcription', label: 'Transcription' },
+  { id: 'speakers', label: 'Speakers' },
+  { id: 'ai', label: 'AI' },
+  { id: 'system', label: 'System' }
+] as const;
+
+export type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number]['id'];
+
+export const resolveSettingsSection = (value: string | undefined): SettingsSectionId =>
+  SETTINGS_SECTIONS.find((section) => section.id === value)?.id ?? 'general';
+
+export const pickFields = <T extends { key: string }>(fields: T[], keys: string[]): T[] =>
+  keys.flatMap((key) => fields.filter((field) => field.key === key));
+
+export interface RuntimeRow {
+  label: string;
+  value: string;
+  mono?: boolean;
+}
+
+export const runtimeRows = (
+  desktop: DesktopRuntimeStatus,
+  settings: AppSettings,
+  hotkeyLabel: string
+): RuntimeRow[] => [
+  {
+    label: 'Worker',
+    value: desktop.workerHealthOk ? 'Healthy' : desktop.workerRunning ? 'Running' : 'Stopped'
+  },
+  { label: 'Transcription setup', value: desktop.workerSetupStatus },
+  { label: 'CUDA', value: desktop.cudaAvailable ? 'Available' : 'CPU fallback' },
+  {
+    label: 'Status window',
+    value:
+      settings.overlayDisplayMode === 'none'
+        ? 'Off'
+        : settings.overlayDisplayMode === 'minimal'
+          ? 'Minimal'
+          : 'Full'
+  },
+  {
+    label: 'Hotkey',
+    value: `${desktop.hotkeyRegistered ? 'Registered' : 'Pending'} - ${hotkeyLabel}`,
+    mono: true
+  }
+];
+
+export const runtimeErrors = (desktop: DesktopRuntimeStatus): string[] =>
+  [desktop.hotkeyError, desktop.workerError, desktop.cudaError].filter(
+    (error): error is string => error !== null
+  );
+
+export const modelBadge = (
+  model: ModelInventoryItem | null | undefined
+): { label: string; status: 'complete' | 'needsSetup' | 'pending' } => {
+  if (model?.installed) {
+    return { label: 'Installed', status: 'complete' };
+  }
+
+  return model?.setupRequired
+    ? { label: 'Setup required', status: 'needsSetup' }
+    : { label: 'Missing', status: 'pending' };
 };

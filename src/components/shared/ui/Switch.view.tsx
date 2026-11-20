@@ -8,6 +8,7 @@ interface SwitchProps {
   children: string;
   class?: string;
   disabled?: boolean;
+  hideLabel?: boolean;
   onCheckedChange: (checked: boolean) => void;
 }
 
@@ -16,6 +17,7 @@ export const Switch = ({
   children,
   class: classProp,
   disabled = false,
+  hideLabel = false,
   onCheckedChange
 }: SwitchProps): JSX.Element => {
   const id = useId();
@@ -32,7 +34,11 @@ export const Switch = ({
       >
         <BaseSwitch.Thumb className='block h-4 w-4 translate-x-1 rounded-full bg-canvas shadow-card transition-transform duration-fast data-checked:translate-x-5' />
       </BaseSwitch.Root>
-      <span class={disabled ? 'cursor-not-allowed' : 'cursor-pointer'}>{children}</span>
+      <span
+        class={clsx(hideLabel && 'sr-only', disabled ? 'cursor-not-allowed' : 'cursor-pointer')}
+      >
+        {children}
+      </span>
     </label>
   );
 };

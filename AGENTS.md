@@ -191,18 +191,12 @@ src/components/recordings/
   ui/
     RecordingsSection.view.tsx                recordings route
 
-src/components/settings/
-  hooks/
-    useSettings.hook.ts
-    settings.helpers.ts
-    settingsFields.ts
-    settingsSelectFields.ts
-  ui/
-    SettingsRoute.view.tsx                    settings route shell
-    SettingsGeneralCapturePanel.view.tsx      settings panel
-    SettingsTranscriptionSpeakersPanel.view.tsx
-    SettingsSummaryProviderPanel.view.tsx
-    SettingsPromptsPanel.view.tsx
+src/components/settings/                      6 sections: general, recording, transcription, speakers, ai, system
+  containers/ context/ (SettingsProvider)
+  hooks/useSettingsPage.hook.ts             section routing + field picking
+  hooks/useSettings.hook.ts, settingsFields.ts, ...
+  ui/Settings.view.tsx, SettingsNav, Settings*Section.view.tsx
+
 
 src/components/setup/
   ui/

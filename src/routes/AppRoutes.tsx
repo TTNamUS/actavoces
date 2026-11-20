@@ -21,7 +21,7 @@ export const AppRoutes = (): JSX.Element => (
       <AskPage />
     </Route>
     <Route path='/settings/:section?'>
-      <SettingsPage />
+      {(params) => <SettingsPage section={params.section} />}
     </Route>
     <Route path='/overview'>
       <OverviewPage />
