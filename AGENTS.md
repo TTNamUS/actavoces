@@ -149,15 +149,23 @@ Current feature layout:
 ```text
 src/components/app-shell/
   containers/
-    App.container.tsx
+    App.container.tsx                         AppProvider + hash Router + shell
+  context/
+    AppContext.tsx                            useAppContext() over useApp()
   hooks/
     useApp.hook.ts
-    useAppNavigation.hook.ts
+    useAppNavigation.hook.ts                  hash location + unsaved-settings guard
     useAppRuntime.hook.ts
+    useShell.hook.ts                          sidebar, record card, toasts model
     appRuntime.helpers.ts
+    shell.helpers.ts
   ui/
-    App.view.tsx                              app shell and route selection
-    AppSidebar.view.tsx                       desktop sidebar
+    App.view.tsx                              shell layout
+    ShellSidebar.view.tsx / RecordCard.view.tsx / WorkerPill.view.tsx
+    AppToasts.view.tsx
+
+src/routes/AppRoutes.tsx                      wouter-preact route table
+src/pages/                                  thin route wrappers
 
 src/components/dashboard/
   ui/
@@ -332,47 +340,18 @@ Service files live in `src/services/<domain>/`.
 
 ## Frontend Design System
 
+> The frontend is being redesigned. The full design system (tokens, typography, components, page layouts)
+> lives in `docs/frontend-redesign/DESIGN.md`; the rollout plan is `docs/frontend-redesign/PLAN.md`.
+> The previous dark-only "pure black / Inter / square edges" direction is retired.
+
 ### Visual Direction
 
-- Dark-first minimalist UI.
-- Pure black body background.
-- Deep charcoal surfaces for cards and panels.
-- High-contrast white typography.
-- Border-heavy depth using faint white-opacity borders.
-- Avoid heavy shadows and gradients.
-- All theme colors are defined with OKLCH in `style.css`.
-- Do not use HEX or RGBA in theme tokens.
-
-### Typography
-
-- Sans-serif: `Inter`
-- Monospace: `JetBrains Mono`
-- Body text: `1rem`, line-height `1.5`, `oklch(100% 0 0 / 0.8)`
-- Use uppercase only for small labels, nav, and CTAs.
-
-### Color Palette
-
-- Background: `oklch(0% 0 0)`
-- Surface: `oklch(14% 0 0)`
-- Card panels: `oklch(20% 0 0)`
-- Subtle panels: `oklch(22% 0 0)`
-- Raised panels: `oklch(23% 0 0)`
-- Primary text: `oklch(100% 0 0)`
-- Secondary text: `oklch(100% 0 0 / 0.8)`
-- Muted text: `oklch(65% 0 0)`
-- Borders: `oklch(100% 0 0 / 0.1)` or `oklch(26% 0 0)`
-- Success green: `oklch(82% 0.2 145)`
-- Emerald accent: `oklch(78% 0.18 165)`
-- Error red: `oklch(55% 0.2 25)`
-- Warning orange: `oklch(65% 0.2 45)`
-
-### Components
-
-- Cards use `bg-surface`, `border border-white/10`, no shadow, and no radius beyond `0.25rem`.
-- Inputs use `bg-surface`, subtle borders, and clear focus borders.
-- Tags and badges are small, uppercase, and border-based.
-- Primary buttons are white on black with square edges.
-- Secondary buttons are transparent with subtle borders.
+- Warm, editorial, calm UI with equal light and dark themes (default follows the OS).
+- One accent color (`ember`) for recording, danger and highlights; `moss` for ready, `amber` for processing/warning.
+- Serif (`Instrument Serif`) for page and recording titles, `Manrope` for UI, `JetBrains Mono` for times, durations and hotkeys.
+- Soft radius (10/14/20px) and only two shadows (`shadow-card`, `shadow-float`).
+- All theme colors are defined with OKLCH in `src/App.css`. Do not use HEX or RGBA in theme tokens.
+- Use uppercase only for small section labels and badges.
 
 ### Layout
 

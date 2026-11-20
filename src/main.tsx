@@ -1,6 +1,9 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { render } from 'preact';
 import App from './App';
+import { installTheme } from './utils/theme';
+
+installTheme();
 
 const root = document.getElementById('root');
 const currentWindow = getCurrentWindow();

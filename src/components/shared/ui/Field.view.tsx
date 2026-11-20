@@ -24,11 +24,11 @@ export const Field = ({ children, class: classProp }: FieldProps): JSX.Element =
 );
 
 Field.Label = ({ children, class: classProp }: FieldLabelProps): JSX.Element => (
-  <BaseField.Label className={clsx('text-text-muted', classProp)}>{children}</BaseField.Label>
+  <BaseField.Label className={clsx('font-medium text-ink', classProp)}>{children}</BaseField.Label>
 );
 
 Field.Description = ({ children, class: classProp }: FieldDescriptionProps): JSX.Element => (
-  <BaseField.Description className={clsx('text-text-muted text-xs', classProp)}>
+  <BaseField.Description className={clsx('text-[13px] text-ink-3', classProp)}>
     {children}
   </BaseField.Description>
 );

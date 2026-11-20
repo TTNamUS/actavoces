@@ -24,8 +24,8 @@ const PADDING_CLASS: Record<NonNullable<PanelProps['padding']>, string> = {
 };
 
 const SURFACE_CLASS: Record<NonNullable<PanelProps['surface']>, string> = {
-  card: 'bg-bg-card',
-  input: 'bg-bg-input'
+  card: 'bg-canvas shadow-card',
+  input: 'bg-canvas-2'
 };
 
 const ELEMENT: Record<NonNullable<PanelProps['as']>, 'article' | 'div' | 'section'> = {
@@ -44,7 +44,7 @@ export const Panel = ({
 }: PanelProps): JSX.Element => {
   const Tag = ELEMENT[as];
   const panelClass = clsx(
-    'flex min-w-0 flex-col border border-border-base',
+    'flex min-w-0 flex-col rounded-lg border border-line',
     SURFACE_CLASS[surface],
     PADDING_CLASS[padding],
     GAP_CLASS[gap],

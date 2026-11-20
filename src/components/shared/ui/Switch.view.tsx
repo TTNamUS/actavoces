@@ -25,12 +25,12 @@ export const Switch = ({
       <BaseSwitch.Root
         aria-label={children}
         checked={checked}
-        className='relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center border border-border-base bg-bg-input transition-colors duration-fast focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:outline-none data-checked:border-text-primary data-checked:bg-text-primary disabled:cursor-not-allowed disabled:opacity-50'
+        className='focus-ring relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full bg-line-2 transition-colors duration-fast data-checked:bg-ink disabled:cursor-not-allowed disabled:opacity-50'
         disabled={disabled}
         id={id}
         onCheckedChange={onCheckedChange}
       >
-        <BaseSwitch.Thumb className='block h-4 w-4 translate-x-1 bg-text-muted transition-transform duration-fast data-checked:translate-x-6 data-checked:bg-bg-page' />
+        <BaseSwitch.Thumb className='block h-4 w-4 translate-x-1 rounded-full bg-canvas shadow-card transition-transform duration-fast data-checked:translate-x-5' />
       </BaseSwitch.Root>
       <span class={disabled ? 'cursor-not-allowed' : 'cursor-pointer'}>{children}</span>
     </label>
