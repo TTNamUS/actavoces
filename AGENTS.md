@@ -167,6 +167,15 @@ src/components/app-shell/
 src/routes/AppRoutes.tsx                      wouter-preact route table
 src/pages/                                  thin route wrappers
 
+src/components/library/                      Library (day groups, search, row menu)
+  hooks/ containers/ ui/
+
+src/components/recording-detail/              recording page (player, transcript, summary, panels)
+  hooks/ containers/ ui/
+
+src/components/activity/                     pipeline + job history
+  hooks/ containers/ ui/
+
 src/components/dashboard/
   ui/
     DashboardRoute.view.tsx                   dashboard route
