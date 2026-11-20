@@ -123,6 +123,7 @@ export const useApp = () => {
       ...settings.fields
     },
     actions: {
+      recording: recordings.recordingActions,
       startRecording: recordings.actions.start,
       stopRecording: recordings.actions.stop,
       toggleRecording: recordings.actions.toggle,

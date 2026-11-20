@@ -128,6 +128,23 @@ export const useRecordings = ({ loading, setError, setSnapshot }: UseRecordingsI
     }
   };
 
+  const removeConfirmed = async (recording: Recording): Promise<boolean> => {
+    loading.value = true;
+    setError(null);
+
+    try {
+      setSnapshot(await deleteRecording(recording.id));
+
+      return true;
+    } catch (error) {
+      setError(errorMessage(error, 'Unable to delete recording'));
+
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const remove = async (recording: Recording) => {
     const shouldDelete = window.confirm(`Delete ${recording.title} and its artifacts?`);
 
@@ -135,32 +152,20 @@ export const useRecordings = ({ loading, setError, setSnapshot }: UseRecordingsI
       return;
     }
 
-    loading.value = true;
-    setError(null);
-
-    try {
-      setSnapshot(await deleteRecording(recording.id));
-    } catch (error) {
-      setError(errorMessage(error, 'Unable to delete recording'));
-    } finally {
-      loading.value = false;
-    }
+    await removeConfirmed(recording);
   };
 
-  const renameTitle = async (recording: Recording) => {
-    const title = titleRenameDraft.value.trim();
+  const renameTitleTo = async (recording: Recording, value: string): Promise<boolean> => {
+    const title = value.trim();
 
     if (title.length === 0) {
       setError('Recording title cannot be empty');
 
-      return;
+      return false;
     }
 
     if (title === recording.title.trim()) {
-      titleRenameTarget.value = null;
-      titleRenameDraft.value = '';
-
-      return;
+      return true;
     }
 
     loading.value = true;
@@ -168,29 +173,39 @@ export const useRecordings = ({ loading, setError, setSnapshot }: UseRecordingsI
 
     try {
       setSnapshot(await renameRecordingTitle(recording.id, title));
-      titleRenameTarget.value = null;
-      titleRenameDraft.value = '';
+
+      return true;
     } catch (error) {
       setError(errorMessage(error, 'Unable to rename recording'));
+
+      return false;
     } finally {
       loading.value = false;
     }
   };
 
-  const renameSpeaker = async (recording: Recording, speaker: string) => {
-    const replacement = speakerRenameDraft.value.trim();
+  const renameTitle = async (recording: Recording) => {
+    if (await renameTitleTo(recording, titleRenameDraft.value)) {
+      titleRenameTarget.value = null;
+      titleRenameDraft.value = '';
+    }
+  };
+
+  const renameSpeakerTo = async (
+    recording: Recording,
+    speaker: string,
+    value: string
+  ): Promise<boolean> => {
+    const replacement = value.trim();
 
     if (replacement.length === 0) {
       setError('Speaker label cannot be empty');
 
-      return;
+      return false;
     }
 
     if (replacement === speaker.trim()) {
-      speakerRenameTarget.value = null;
-      speakerRenameDraft.value = '';
-
-      return;
+      return true;
     }
 
     loading.value = true;
@@ -198,12 +213,21 @@ export const useRecordings = ({ loading, setError, setSnapshot }: UseRecordingsI
 
     try {
       setSnapshot(await renameSpeakerLabel(recording.id, speaker, replacement));
-      speakerRenameTarget.value = null;
-      speakerRenameDraft.value = '';
+
+      return true;
     } catch (error) {
       setError(errorMessage(error, 'Unable to rename speaker'));
+
+      return false;
     } finally {
       loading.value = false;
+    }
+  };
+
+  const renameSpeaker = async (recording: Recording, speaker: string) => {
+    if (await renameSpeakerTo(recording, speaker, speakerRenameDraft.value)) {
+      speakerRenameTarget.value = null;
+      speakerRenameDraft.value = '';
     }
   };
 
@@ -270,6 +294,14 @@ export const useRecordings = ({ loading, setError, setSnapshot }: UseRecordingsI
       start,
       stop,
       toggle
+    },
+    recordingActions: {
+      openPath,
+      retry,
+      rerunSummary,
+      removeConfirmed,
+      renameTitleTo,
+      renameSpeakerTo
     }
   };
 };

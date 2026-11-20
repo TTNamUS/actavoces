@@ -32,3 +32,13 @@ export const formatClock = (totalSeconds: number): string => {
     ? `${hours}:${minutes.toString().padStart(2, '0')}:${rest}`
     : `${minutes}:${rest}`;
 };
+
+export const formatDay = (value: string): string =>
+  new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(
+    new Date(timestampMs(value))
+  );
+
+export const formatTime = (value: string): string =>
+  new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(
+    new Date(timestampMs(value))
+  );

@@ -1,9 +1,4 @@
 import type { JSX } from 'preact';
-import { useAppContext } from '../components/app-shell/context/AppContext';
-import { RecordingsSection } from '../components/recordings/ui/RecordingsSection.view';
+import { LibraryContainer } from '../components/library/containers/Library.container';
 
-export const LibraryPage = (): JSX.Element => (
-  <div class='mx-auto flex max-w-5xl flex-col gap-5 px-8 py-8'>
-    <RecordingsSection app={useAppContext()} />
-  </div>
-);
+export const LibraryPage = (): JSX.Element => <LibraryContainer />;
