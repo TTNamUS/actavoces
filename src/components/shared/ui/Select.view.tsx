@@ -1,4 +1,5 @@
 import { Select as BaseSelect } from '@base-ui/react/select';
+import { IconCheck, IconSelector } from '@tabler/icons-react';
 import { clsx } from 'clsx';
 import type { JSX } from 'preact';
 import { useCallback } from 'preact/hooks';
@@ -41,24 +42,28 @@ export const Select = ({
     >
       <BaseSelect.Trigger
         className={clsx(
-          'flex h-11 w-full items-center justify-between gap-3 border border-border-base bg-bg-input px-3 font-mono text-text-primary text-xs outline-none transition-colors duration-fast hover:border-border-focus focus:border-border-focus focus-visible:ring-2 focus-visible:ring-border-focus disabled:cursor-not-allowed disabled:opacity-50',
+          'focus-ring flex h-9 w-full items-center justify-between gap-3 rounded-md border border-line-2 bg-canvas px-3 text-ink text-sm outline-none transition-colors duration-fast hover:bg-canvas-2 disabled:cursor-not-allowed disabled:opacity-50',
           classProp
         )}
       >
         <BaseSelect.Value />
-        <BaseSelect.Icon className='text-text-muted'>v</BaseSelect.Icon>
+        <BaseSelect.Icon className='text-ink-3'>
+          <IconSelector aria-hidden='true' size={16} stroke={1.75} />
+        </BaseSelect.Icon>
       </BaseSelect.Trigger>
       <BaseSelect.Portal>
         <BaseSelect.Positioner className='z-50 outline-none' sideOffset={4}>
-          <BaseSelect.Popup className='max-h-72 min-w-(--anchor-width) overflow-y-auto border border-border-base bg-bg-card p-1 text-text-primary shadow-modal'>
+          <BaseSelect.Popup className='max-h-72 min-w-(--anchor-width) overflow-y-auto rounded-lg border border-line bg-canvas p-1 text-ink shadow-float'>
             {options.map((option) => (
               <BaseSelect.Item
-                className='flex cursor-pointer items-center justify-between gap-3 px-3 py-2 font-mono text-xs outline-none data-highlighted:bg-bg-hover data-selected:text-text-primary data-disabled:cursor-not-allowed data-disabled:opacity-50'
+                className='flex cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-sm outline-none data-highlighted:bg-canvas-3 data-disabled:cursor-not-allowed data-disabled:opacity-50'
                 key={option.value}
                 value={option.value}
               >
                 <BaseSelect.ItemText>{option.label}</BaseSelect.ItemText>
-                <BaseSelect.ItemIndicator className='text-text-muted'>✓</BaseSelect.ItemIndicator>
+                <BaseSelect.ItemIndicator className='text-ember'>
+                  <IconCheck aria-hidden='true' size={14} stroke={2} />
+                </BaseSelect.ItemIndicator>
               </BaseSelect.Item>
             ))}
           </BaseSelect.Popup>

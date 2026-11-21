@@ -1,5 +1,5 @@
 use serde::Serialize;
-use tauri::{Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize, Size, WebviewUrl};
+use tauri::{Emitter, LogicalSize, Manager, PhysicalPosition, Size, WebviewUrl};
 
 use crate::domain::types::{OverlayDisplayMode, OverlayPosition};
 
@@ -20,6 +20,8 @@ pub fn create_recording_overlay(app: &tauri::App) -> tauri::Result<()> {
     .inner_size(380.0, 72.0)
     .position(24.0, 24.0)
     .decorations(false)
+    .transparent(true)
+    .shadow(false)
     .resizable(false)
     .always_on_top(true)
     .skip_taskbar(true)
@@ -73,7 +75,7 @@ fn size_recording_overlay(
 ) -> Result<(), String> {
     let size = match display_mode {
         OverlayDisplayMode::Full => Size::Logical(LogicalSize::new(300.0, 72.0)),
-        OverlayDisplayMode::Minimal => Size::Physical(PhysicalSize::new(64, 64)),
+        OverlayDisplayMode::Minimal => Size::Logical(LogicalSize::new(120.0, 56.0)),
         OverlayDisplayMode::None => Size::Logical(LogicalSize::new(380.0, 72.0)),
     };
 

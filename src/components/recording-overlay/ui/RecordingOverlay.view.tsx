@@ -1,6 +1,5 @@
 import type { JSX } from 'preact';
 import { Button } from '../../shared/ui/Button.view';
-import { StatusBadge } from '../../shared/ui/StatusBadge.view';
 import type { useRecordingOverlay } from '../hooks/useRecordingOverlay.hook';
 
 interface RecordingOverlayViewProps {
@@ -8,37 +7,31 @@ interface RecordingOverlayViewProps {
 }
 
 export const RecordingOverlayView = ({ overlay }: RecordingOverlayViewProps): JSX.Element => (
-  <main class='min-h-screen bg-bg-page text-text-primary'>
+  <main class='overlay-root flex h-screen items-center bg-transparent p-2 text-ink'>
     {overlay.status.displayMode.value === 'none' ? null : overlay.status.displayMode.value ===
       'minimal' ? (
-      <div class='min-h-screen flex items-center justify-center h-full p-3'>
-        <StatusBadge
-          label={overlay.status.stopping.value ? 'S' : 'R'}
-          status={overlay.status.stopping.value ? 'pending' : 'recording'}
-        />
+      <div class='flex h-full w-full items-center justify-center gap-2 rounded-full border border-line bg-canvas shadow-float'>
+        <span class='rec-dot h-2.5 w-2.5 rounded-full bg-ember' />
+        <span class='font-mono text-sm tabular-nums'>{overlay.data.elapsedLabel}</span>
       </div>
     ) : (
-      <section class='grid h-screen grid-cols-[minmax(0,1fr)_auto] items-center gap-4 overflow-hidden border border-error-border bg-bg-card px-4 max-[120px]:hidden'>
-        <div class='flex min-w-0 items-center gap-3'>
-          <span class='h-3 w-3 shrink-0 rounded-full bg-error' />
-          <div class='flex min-w-0 flex-col gap-1.5'>
-            <span class='truncate font-semibold text-sm leading-none'>
-              {overlay.status.stopping.value ? 'Stopping' : 'Recording'}
-            </span>
-            <span class='truncate font-mono text-[11px] text-text-muted uppercase leading-none'>
-              ActaVoces
-            </span>
-          </div>
-        </div>
+      <div class='flex h-full w-full items-center justify-between gap-3 overflow-hidden rounded-full border border-line bg-canvas pr-2 pl-4 shadow-float'>
+        <span class='flex min-w-0 items-center gap-2.5'>
+          <span class='rec-dot h-2.5 w-2.5 shrink-0 rounded-full bg-ember' />
+          <span class='font-mono text-sm tabular-nums'>{overlay.data.elapsedLabel}</span>
+          <span class='truncate text-[12px] text-ink-3'>
+            {overlay.status.stopping.value ? 'Stopping…' : 'Recording'}
+          </span>
+        </span>
         <Button
-          class='h-9 shrink-0 px-4 text-[11px] leading-none'
           disabled={overlay.status.stopping.value}
           onClick={overlay.actions.stopRecording}
-          variant='secondary'
+          size='sm'
+          variant='ember'
         >
           Stop
         </Button>
-      </section>
+      </div>
     )}
   </main>
 );

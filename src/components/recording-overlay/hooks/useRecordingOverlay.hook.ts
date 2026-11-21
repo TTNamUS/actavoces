@@ -4,6 +4,8 @@ import { useEffect } from 'preact/hooks';
 import { getAppSnapshot, stopRecording } from '../../../services/desktop/app.service';
 import { appErrorSignal } from '../../../stores/app.store';
 import type { AppSettings, AppSnapshot } from '../../../types/desktop';
+import { formatClock } from '../../../utils/format';
+import { useElapsedSeconds } from '../../shared/hooks/useElapsedSeconds.hook';
 
 interface RecordingOverlaySyncPayload {
   visible: boolean;
@@ -17,6 +19,8 @@ export const useRecordingOverlay = () => {
   const stopping = useSignal(false);
   const displayMode = useSignal<AppSettings['overlayDisplayMode']>('full');
   const overlaySyncReceived = useSignal(false);
+  const startedAt = useSignal<string | null>(null);
+  const elapsed = useElapsedSeconds(startedAt.value);
 
   const handleStopRecording = async () => {
     stopping.value = true;
@@ -37,6 +41,8 @@ export const useRecordingOverlay = () => {
 
     void getAppSnapshot()
       .then((snapshot) => {
+        startedAt.value = snapshot.activeRecording?.startedAt ?? null;
+
         if (!overlaySyncReceived.value) {
           displayMode.value = effectiveDisplayMode(snapshot);
         }
@@ -44,6 +50,7 @@ export const useRecordingOverlay = () => {
       .catch(() => undefined);
 
     const snapshotListener = listen<AppSnapshot>('app-snapshot-updated', (event) => {
+      startedAt.value = event.payload.activeRecording?.startedAt ?? null;
       displayMode.value = effectiveDisplayMode(event.payload);
     });
     const overlaySyncListener = listen<RecordingOverlaySyncPayload>(
@@ -65,6 +72,9 @@ export const useRecordingOverlay = () => {
   }, []);
 
   return {
+    data: {
+      elapsedLabel: formatClock(elapsed)
+    },
     status: {
       displayMode,
       stopping

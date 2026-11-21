@@ -37,9 +37,9 @@ export const Input = ({
     aria-label={ariaLabel}
     autoFocus={autofocus}
     className={clsx(
-      'h-11 border px-3 font-mono text-xs text-text-primary outline-none transition-colors duration-fast placeholder:text-text-muted focus:border-border-focus focus-visible:ring-2 focus-visible:ring-border-focus disabled:cursor-not-allowed disabled:opacity-50',
-      surface === 'card' ? 'bg-bg-card' : 'bg-bg-input',
-      invalid ? 'border-error-border' : 'border-border-base',
+      'focus-ring h-9 select-text rounded-md border px-3 text-sm text-ink outline-none transition-colors duration-fast placeholder:text-ink-3 focus:border-ember disabled:cursor-not-allowed disabled:opacity-50',
+      surface === 'card' ? 'bg-canvas-2' : 'bg-canvas',
+      invalid ? 'border-ember' : 'border-line-2',
       classProp
     )}
     disabled={disabled}

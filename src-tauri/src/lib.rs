@@ -121,6 +121,7 @@ pub fn run() {
             app::commands::recordings::rename_recording_title,
             app::commands::recordings::rename_speaker_label,
             app::commands::recordings::toggle_recording_from_shortcut,
+            app::commands::content::get_recording_content,
             app::commands::pipeline::resume_pending_jobs,
             app::commands::worker::bootstrap_worker_runtime,
             app::commands::worker::get_worker_status,

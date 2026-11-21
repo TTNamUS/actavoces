@@ -2,7 +2,6 @@ import { useSignal } from '@preact/signals';
 import { getVersion } from '@tauri-apps/api/app';
 import { useEffect } from 'preact/hooks';
 import { appErrorSignal, appSnapshotSignal } from '../../../stores/app.store';
-import { activeRouteSignal } from '../../../stores/route.store';
 import type { AppSnapshot } from '../../../types/desktop';
 import { formatDuration, formatTimestamp } from '../../../utils/format';
 import { displayHotkey } from '../../../utils/hotkey';
@@ -10,7 +9,7 @@ import { useRecordings } from '../../recordings/hooks/useRecordings.hook';
 import { useSettings } from '../../settings/hooks/useSettings.hook';
 import { useUpdates } from '../../updates/hooks/useUpdates.hook';
 import { useWorkerRuntime } from '../../worker-runtime/hooks/useWorkerRuntime.hook';
-import { isTauriRuntime, routeLabel } from './appRuntime.helpers';
+import { isTauriRuntime } from './appRuntime.helpers';
 import { useAppNavigation } from './useAppNavigation.hook';
 import { useAppRuntime } from './useAppRuntime.hook';
 
@@ -88,13 +87,11 @@ export const useApp = () => {
       latestRecordingActions: recordings.latestRecordingActions,
       recordingRows: recordings.recordingRows,
       groupedJobRows: recordings.groupedJobRows,
-      recentRecordingRows: recordings.recentRecordingRows,
       activeJobs: recordings.activeJobs,
       latestRecordingProgress: recordings.latestRecordingProgress,
       latestRecordingPipelineStatus: recordings.latestRecordingPipelineStatus,
       selectedModel: workerRuntime.selectedModel,
       settingsValidationErrors: settings.validationErrors,
-      routeLabel,
       displayHotkey,
       formatDuration,
       formatTimestamp,
@@ -117,7 +114,6 @@ export const useApp = () => {
       setupRunning: runtime.setupRunning,
       error: appErrorSignal,
       isRecording: recordings.isRecording,
-      activeRoute: activeRouteSignal,
       hasUnsavedSettings: settings.hasUnsavedSettings
     },
     navigation,
@@ -126,6 +122,7 @@ export const useApp = () => {
       ...settings.fields
     },
     actions: {
+      recording: recordings.recordingActions,
       startRecording: recordings.actions.start,
       stopRecording: recordings.actions.stop,
       toggleRecording: recordings.actions.toggle,
@@ -135,6 +132,8 @@ export const useApp = () => {
       clearProviderApiKey: settings.actions.clearProviderApiKey,
       clearHuggingFaceToken: settings.actions.clearHuggingFaceToken,
       saveSettings: settings.actions.saveSettings,
+      discardSettings: () => resetSettingsDraft(appSnapshotSignal.value.settings),
+      dismissError: () => setError(null),
       checkForUpdates: updates.actions.checkForUpdates,
       dismissUpdateToast: updates.actions.dismissUpdateToast,
       installUpdate: updates.actions.installUpdate,

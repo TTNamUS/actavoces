@@ -146,9 +146,7 @@ export const useSettings = ({ setError, setSnapshot }: UseSettingsInput) => {
     validationErrors,
     hasUnsavedSettings,
     resetDraft,
-    fields: buildSettingsFields(draft, recordingHotkey, glossaryInput, (nextDraft) => {
-      void persistSettings(nextDraft);
-    }),
+    fields: buildSettingsFields(draft, recordingHotkey, glossaryInput),
     actions: {
       saveSettings,
       clearProviderApiKey,

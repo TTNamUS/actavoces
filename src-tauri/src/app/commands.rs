@@ -1,3 +1,4 @@
+pub(crate) mod content;
 pub(crate) mod models;
 pub(crate) mod overlay;
 pub(crate) mod pipeline;

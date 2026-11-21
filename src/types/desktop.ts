@@ -192,3 +192,18 @@ export interface AppSnapshot {
   desktop: DesktopRuntimeStatus;
   settings: AppSettings;
 }
+
+export interface Utterance {
+  speaker: string;
+  start: number;
+  end: number;
+  text: string;
+}
+
+export interface RecordingContent {
+  transcriptMarkdown: string | null;
+  rawTranscriptMarkdown: string | null;
+  summaryMarkdown: string | null;
+  utterances: Utterance[];
+  audioPath: string | null;
+}

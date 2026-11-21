@@ -8,7 +8,7 @@ import {
 } from '@tabler/icons-react';
 import type { JSX } from 'preact';
 import { AppLogo } from '../components/shared/ui/AppLogo.view';
-import '../App.css';
+import './landing.css';
 import dashboardScreenshot from '../../screenshots/1.png';
 import type { useLandingVersion } from './hooks/useLandingVersion.hook';
 import {

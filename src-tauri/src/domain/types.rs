@@ -3,6 +3,7 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 use serde::{Deserialize, Serialize};
 
 use crate::capture::audio::NativeAudioCaptureBackend;
+use crate::diarization::SpeakerLabeledUtterance;
 use crate::storage::repository::AppRepository;
 use crate::worker::runtime::WorkerRuntimeState;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -408,4 +409,20 @@ impl ActavocesState {
             .lock()
             .map_err(|error| error.to_string())
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordingContentInput {
+    pub(crate) recording_id: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordingContent {
+    pub(crate) transcript_markdown: Option<String>,
+    pub(crate) raw_transcript_markdown: Option<String>,
+    pub(crate) summary_markdown: Option<String>,
+    pub(crate) utterances: Vec<SpeakerLabeledUtterance>,
+    pub(crate) audio_path: Option<String>,
 }
