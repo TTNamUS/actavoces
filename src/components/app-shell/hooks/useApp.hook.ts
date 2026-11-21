@@ -137,7 +137,9 @@ export const useApp = () => {
       installUpdate: updates.actions.installUpdate,
       installLocalRuntime: runtime.actions.installLocalRuntime,
       installSpeakerLabels: runtime.actions.installSpeakerLabels,
-      installPyannote: runtime.actions.installPyannote
+      installPyannote: runtime.actions.installPyannote,
+      uninstallLocalRuntime: runtime.actions.uninstallLocalRuntime,
+      uninstallSpeakerLabels: runtime.actions.uninstallSpeakerLabels
     }
   };
 };

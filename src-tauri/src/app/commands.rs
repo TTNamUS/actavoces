@@ -8,6 +8,7 @@ pub(crate) mod settings;
 pub(crate) mod snapshot;
 pub(crate) mod speaker_labels;
 pub(crate) mod tray;
+pub(crate) mod uninstall;
 pub(crate) mod worker;
 
 pub use overlay::{create_recording_overlay, sync_recording_overlay};

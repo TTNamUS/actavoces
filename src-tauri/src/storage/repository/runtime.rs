@@ -149,6 +149,12 @@ impl AppRepository {
         transaction.commit()
     }
 
+    pub(crate) fn clear_model_inventory(&mut self) -> rusqlite::Result<()> {
+        self.connection.execute("DELETE FROM models", [])?;
+
+        Ok(())
+    }
+
     pub(crate) fn model_inventory(&self) -> rusqlite::Result<Vec<ModelInventoryItem>> {
         let mut statement = self.connection.prepare(
             "

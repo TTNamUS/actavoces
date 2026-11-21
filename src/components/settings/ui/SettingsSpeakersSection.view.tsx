@@ -53,7 +53,9 @@ export const SettingsSpeakersSection = (): JSX.Element => {
                 ? actions.installSpeakerLabels
                 : actions.installPyannote
             }
+            onUninstall={actions.uninstallSpeakerLabels}
             title='Speaker label runtime'
+            uninstallConfirm='Remove the speaker label model and ONNX Runtime? Existing transcripts are kept. You can reinstall any time.'
           />
           <Card class='px-5'>
             {data.diarizationField === null ? null : (

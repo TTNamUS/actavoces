@@ -11,7 +11,9 @@ interface SettingsRuntimeCardProps {
   disabled?: boolean;
   info: RuntimeInstallInfo;
   onInstall: () => void;
+  onUninstall: () => void;
   title: string;
+  uninstallConfirm: string;
 }
 
 export const SettingsRuntimeCard = ({
@@ -20,7 +22,9 @@ export const SettingsRuntimeCard = ({
   disabled = false,
   info,
   onInstall,
-  title
+  onUninstall,
+  title,
+  uninstallConfirm
 }: SettingsRuntimeCardProps): JSX.Element => (
   <Card class='flex flex-col gap-4 p-5'>
     <div class='flex items-start justify-between gap-4'>
@@ -45,6 +49,19 @@ export const SettingsRuntimeCard = ({
       >
         {actionLabel}
       </Button>
+      {info.ready ? (
+        <Button
+          disabled={disabled || info.installing}
+          onClick={() => {
+            if (window.confirm(uninstallConfirm)) {
+              onUninstall();
+            }
+          }}
+          variant='outline'
+        >
+          Uninstall
+        </Button>
+      ) : null}
     </div>
   </Card>
 );

@@ -22,6 +22,8 @@ export const setupDiarizationRuntime = (huggingFaceToken: string) =>
   });
 
 export const setupSpeakerLabels = () => invoke<AppSnapshot>('setup_speaker_labels');
+export const uninstallLocalRuntime = () => invoke<AppSnapshot>('uninstall_local_runtime');
+export const uninstallSpeakerLabels = () => invoke<AppSnapshot>('uninstall_speaker_labels');
 
 export const clearTranscriptionCloudApiKey = () =>
   invoke<AppSnapshot>('clear_transcription_cloud_api_key');

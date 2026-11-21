@@ -123,6 +123,28 @@ html[data-theme="dark"] {
     background-color: transparent;
   }
 
+  /* Desktop shell: the window never scrolls or rubber-bands; only inner panes do. */
+  html:has(.app-root),
+  html:has(.overlay-root) {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    scroll-behavior: auto;
+  }
+
+  html:has(.app-root) body,
+  html:has(.overlay-root) body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  .scroll-pane {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
   #root {
     width: 100%;
     min-height: 100vh;

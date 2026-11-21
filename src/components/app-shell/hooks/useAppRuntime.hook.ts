@@ -6,6 +6,8 @@ import {
   getAppSnapshot,
   setupDiarizationRuntime,
   setupSpeakerLabels,
+  uninstallLocalRuntime,
+  uninstallSpeakerLabels,
   writeDiagnosticLog
 } from '../../../services/desktop/app.service';
 import type {
@@ -146,6 +148,32 @@ export const useAppRuntime = ({
     }
   };
 
+  const removeLocalRuntime = async () => {
+    setupRunning.value = true;
+    setError(null);
+
+    try {
+      setSnapshot(await uninstallLocalRuntime());
+      setupProgress.value = { status: 'missing', step: 'Local runtime removed', error: null };
+      sortformerProgress.value = null;
+    } catch (error) {
+      setError(errorMessage(error, 'Unable to remove local runtime'));
+    } finally {
+      setupRunning.value = false;
+    }
+  };
+
+  const removeSpeakerLabels = async () => {
+    setError(null);
+
+    try {
+      setSnapshot(await uninstallSpeakerLabels());
+      sortformerProgress.value = null;
+    } catch (error) {
+      setError(errorMessage(error, 'Unable to remove speaker labels'));
+    }
+  };
+
   useRuntimeEffects({
     loading,
     setupProgress,
@@ -162,7 +190,9 @@ export const useAppRuntime = ({
     actions: {
       installLocalRuntime: runBootstrap,
       installSpeakerLabels,
-      installPyannote: setupDiarization
+      installPyannote: setupDiarization,
+      uninstallLocalRuntime: removeLocalRuntime,
+      uninstallSpeakerLabels: removeSpeakerLabels
     }
   };
 };

@@ -10,9 +10,9 @@ interface AppViewProps {
 }
 
 export const AppView = ({ shell }: AppViewProps): JSX.Element => (
-  <main class='flex h-screen overflow-hidden bg-canvas text-ink'>
+  <main class='app-root flex h-screen overflow-hidden bg-canvas text-ink'>
     <ShellSidebar shell={shell} />
-    <section class='min-w-0 flex-1 overflow-y-auto'>
+    <section class='scroll-pane min-w-0 flex-1'>
       <RouteBoundaryContainer>
         <AppRoutes />
       </RouteBoundaryContainer>

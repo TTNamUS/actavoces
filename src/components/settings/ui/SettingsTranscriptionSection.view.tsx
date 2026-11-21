@@ -57,7 +57,9 @@ export const SettingsTranscriptionSection = (): JSX.Element => {
               disabled={status.setupRunning}
               info={data.localRuntime}
               onInstall={actions.installLocalRuntime}
+              onUninstall={actions.uninstallLocalRuntime}
               title='Local transcription runtime'
+              uninstallConfirm='Remove the local runtime and downloaded Whisper models? Recordings and transcripts are kept. You can reinstall any time.'
             />
           </section>
           <SettingsLocalModel />

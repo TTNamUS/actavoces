@@ -165,6 +165,8 @@ export const useSettingsPage = (sectionParam?: string) => {
       installLocalRuntime: app.actions.installLocalRuntime,
       installSpeakerLabels: app.actions.installSpeakerLabels,
       installPyannote: app.actions.installPyannote,
+      uninstallLocalRuntime: app.actions.uninstallLocalRuntime,
+      uninstallSpeakerLabels: app.actions.uninstallSpeakerLabels,
       clearHuggingFaceToken: app.actions.clearHuggingFaceToken,
       refreshModels: app.actions.refreshModels,
       installModel: app.actions.installSelectedModel,

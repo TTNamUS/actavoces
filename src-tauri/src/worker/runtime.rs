@@ -7,7 +7,7 @@ use crate::worker::files::{
     repair_worker_virtualenv_python_home,
 };
 use crate::worker::manifest::{worker_bootstrap_is_ready, write_worker_bootstrap_manifest};
-use crate::worker::paths::worker_runtime_paths;
+pub(crate) use crate::worker::paths::worker_runtime_paths;
 use crate::worker::progress::{
     emit_worker_setup_progress, refresh_runtime_capabilities_with_paths,
 };
