@@ -21,7 +21,10 @@ export const setupDiarizationRuntime = (huggingFaceToken: string) =>
     input: { huggingFaceToken }
   });
 
-export const skipDiarizationSetup = () => invoke<AppSnapshot>('skip_diarization_setup');
+export const setupSpeakerLabels = () => invoke<AppSnapshot>('setup_speaker_labels');
+
+export const clearTranscriptionCloudApiKey = () =>
+  invoke<AppSnapshot>('clear_transcription_cloud_api_key');
 
 export const startRecording = () => invoke<AppSnapshot>('start_recording');
 

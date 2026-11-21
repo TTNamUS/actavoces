@@ -103,14 +103,15 @@ If there is no build for your platform yet, use the [development setup](#develop
 
 ## First Run
 
-1. Open ActaVoces.
-2. Keep network access available during setup.
-3. Wait while ActaVoces prepares the local worker runtime and default settings.
-4. Let the app download and install the default transcription model automatically.
-5. Allow the OS microphone and audio-capture permissions when prompted.
-6. Start a recording from the app, tray, global hotkey, or floating overlay.
+1. Open ActaVoces. Nothing heavy is installed: the app only records the microphone and system audio.
+2. Allow the OS microphone and audio-capture permissions when prompted.
+3. Start a recording from the app, tray, global hotkey, or floating overlay. Recordings stay in the Library.
+4. When you want transcripts, open **Settings → Transcription** and choose an engine:
+   - **Cloud**: any OpenAI-compatible `/audio/transcriptions` API (OpenAI, Groq, ...). No local install.
+   - **Local**: press *Install local runtime* to set up Python, faster-whisper and a model on demand.
+5. Optional: **Settings → Speakers** installs speaker labels on demand, and **Settings → AI** configures an OpenAI-compatible chat API (cloud or Ollama) for summaries and titles.
 
-Initial setup requires network access for model downloads. After the local transcription model and local speaker-label backend are prepared, normal recording and local processing can run without network access. Summary generation is disabled unless you configure a provider.
+Recordings made before an engine is configured wait as "Needs setup" and are processed as soon as you pick one. Cloud engines upload audio to the provider you configure; local processing works offline once installed.
 
 Users are responsible for consent and recording-law compliance in their jurisdiction.
 

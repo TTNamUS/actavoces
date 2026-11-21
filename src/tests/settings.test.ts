@@ -28,7 +28,12 @@ const validSettings: AppSettingsUpdate = {
   providerBaseUrl: 'https://api.openai.com/v1',
   providerModel: '',
   providerApiKey: '',
-  summaryPrompt: 'Summary'
+  summaryPrompt: 'Summary',
+  transcriptionEngine: 'local',
+  transcriptionCloudBaseUrl: 'https://api.openai.com/v1',
+  transcriptionCloudModel: 'whisper-1',
+  transcriptionCloudApiKey: '',
+  speakersEnabled: true
 };
 
 describe('settings validation', () => {

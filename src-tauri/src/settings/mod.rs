@@ -8,6 +8,9 @@ pub(crate) const DEFAULT_SUMMARY_PROMPT: &str =
     "Summarize the conversation. Then provide bullet lists for decisions and action items.";
 pub(crate) const SUMMARY_PROVIDER_API_KEY_SETTING: &str = "providerApiKey";
 pub(crate) const HUGGING_FACE_TOKEN_SETTING: &str = "huggingFaceToken";
+pub(crate) const TRANSCRIPTION_CLOUD_API_KEY_SETTING: &str = "transcriptionCloudApiKey";
+pub(crate) const DEFAULT_CLOUD_BASE_URL: &str = "https://api.openai.com/v1";
+pub(crate) const DEFAULT_CLOUD_TRANSCRIPTION_MODEL: &str = "whisper-1";
 
 pub(crate) fn default_settings(database_path: &Path) -> AppSettings {
     AppSettings {
@@ -46,6 +49,12 @@ pub(crate) fn default_settings(database_path: &Path) -> AppSettings {
         provider_base_url: "https://api.openai.com/v1".to_owned(),
         provider_model: String::new(),
         summary_prompt: DEFAULT_SUMMARY_PROMPT.to_owned(),
+        transcription_engine: TranscriptionEngine::None,
+        transcription_cloud_base_url: DEFAULT_CLOUD_BASE_URL.to_owned(),
+        transcription_cloud_model: DEFAULT_CLOUD_TRANSCRIPTION_MODEL.to_owned(),
+        transcription_cloud_api_key_configured: false,
+        speakers_enabled: false,
+        sortformer_ready: false,
     }
 }
 
@@ -128,6 +137,19 @@ pub(crate) fn settings_pairs(
         ("providerBaseUrl", input.provider_base_url.clone()),
         ("providerModel", input.provider_model.clone()),
         ("summaryPrompt", input.summary_prompt.clone()),
+        (
+            "transcriptionEngine",
+            serde_json::to_string(&input.transcription_engine).unwrap_or_default(),
+        ),
+        (
+            "transcriptionCloudBaseUrl",
+            input.transcription_cloud_base_url.clone(),
+        ),
+        (
+            "transcriptionCloudModel",
+            input.transcription_cloud_model.clone(),
+        ),
+        ("speakersEnabled", input.speakers_enabled.to_string()),
     ]
 }
 
@@ -170,6 +192,20 @@ pub(crate) fn validate_settings(
         if input.provider_model.trim().is_empty() {
             return Err(rusqlite::Error::InvalidParameterName(
                 "Provider model is required when summaries are enabled".to_owned(),
+            ));
+        }
+    }
+
+    if input.transcription_engine == TranscriptionEngine::Cloud {
+        if input.transcription_cloud_base_url.trim().is_empty() {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "Cloud transcription base URL is required".to_owned(),
+            ));
+        }
+
+        if input.transcription_cloud_model.trim().is_empty() {
+            return Err(rusqlite::Error::InvalidParameterName(
+                "Cloud transcription model is required".to_owned(),
             ));
         }
     }

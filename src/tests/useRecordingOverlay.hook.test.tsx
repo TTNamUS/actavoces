@@ -50,7 +50,13 @@ const baseSettings: AppSettings = {
   summaryEnabled: false,
   providerBaseUrl: 'https://api.openai.com/v1',
   providerModel: '',
-  summaryPrompt: 'Summary'
+  summaryPrompt: 'Summary',
+  transcriptionEngine: 'local',
+  transcriptionCloudBaseUrl: 'https://api.openai.com/v1',
+  transcriptionCloudModel: 'whisper-1',
+  transcriptionCloudApiKeyConfigured: false,
+  speakersEnabled: true,
+  sortformerReady: false
 };
 
 const makeSnapshot = (settings: Partial<AppSettings> = {}, overlayVisible = true): AppSnapshot => ({

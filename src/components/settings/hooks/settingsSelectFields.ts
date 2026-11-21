@@ -8,6 +8,18 @@ export const selectFields = (
   onValueChange: (key: keyof AppSettingsUpdate) => (value: string) => void
 ): SettingsSelectField[] => [
   {
+    key: 'transcriptionEngine',
+    label: 'Transcription engine',
+    value: draft.value.transcriptionEngine,
+    options: [
+      { value: 'none', label: 'Off (record only)' },
+      { value: 'local', label: 'Local (on this computer)' },
+      { value: 'cloud', label: 'Cloud (OpenAI-compatible API)' }
+    ],
+    onValueChange: onValueChange('transcriptionEngine'),
+    hint: engineHint(draft.value.transcriptionEngine)
+  },
+  {
     key: 'whisperModel',
     label: 'Whisper model',
     value: draft.value.whisperModel,
@@ -61,6 +73,32 @@ export const speakerCountField = (
   onValueChange: onValueChange('speakerCountMode')
 });
 
+const engineHint = (
+  engine: AppSettingsUpdate['transcriptionEngine']
+): SettingsSelectField['hint'] => {
+  if (engine === 'local') {
+    return {
+      tone: 'muted',
+      title: 'Runs privately on this computer.',
+      text: 'Needs the local runtime (Python, faster-whisper and a model). Install it below; nothing is installed until you do.'
+    };
+  }
+
+  if (engine === 'cloud') {
+    return {
+      tone: 'warning',
+      title: 'Audio is uploaded to the provider you configure.',
+      text: 'Works with OpenAI, Groq and any compatible /audio/transcriptions endpoint. No local install is required.'
+    };
+  }
+
+  return {
+    tone: 'muted',
+    title: 'Recording only.',
+    text: 'Recordings are saved and stay in the Library. Pick an engine whenever you want transcripts; waiting recordings are processed afterwards.'
+  };
+};
+
 const diarizationHint = (
   backend: AppSettingsUpdate['diarizationBackend']
 ): SettingsSelectField['hint'] => {
@@ -68,7 +106,7 @@ const diarizationHint = (
     return {
       tone: 'muted',
       title: 'Local Sortformer voice attribution.',
-      text: 'Adds speaker labels by detecting who spoke when. The ONNX model and ONNX Runtime download automatically on first use; no Hugging Face token or Python diarization runtime is required. Speaker count is automatic unless exact one speaker is selected.'
+      text: 'Adds speaker labels by detecting who spoke when. The ONNX model and ONNX Runtime download when you install speaker labels; no Hugging Face token or Python diarization runtime is required. Speaker count is automatic unless exact one speaker is selected.'
     };
   }
 

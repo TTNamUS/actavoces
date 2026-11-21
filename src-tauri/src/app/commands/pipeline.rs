@@ -6,8 +6,7 @@ use std::{
 use tauri::{Emitter, Manager};
 
 use crate::artifacts::{
-    artifact, diarized_transcript_path, mixed_audio_path, raw_segments_path, raw_transcript_path,
-    raw_words_path, stage_label,
+    artifact, mixed_audio_path, raw_segments_path, raw_words_path, stage_label,
 };
 use crate::diarization::{
     run_single_speaker_diarization, run_sortformer_diarization, TranscriptSegment, TranscriptWord,
@@ -18,6 +17,7 @@ use crate::utils::{pipeline_job_id, read_json_file};
 use crate::worker::runtime::run_worker_command;
 
 use super::overlay::sync_recording_overlay;
+use super::pipeline_cloud::{run_cloud_summary_stage, run_cloud_transcription_stage};
 use super::recordings::rename_recording_outputs;
 
 const MAX_TRANSCRIPTION_CONTEXT_CHARS: usize = 4000;
@@ -116,21 +116,70 @@ where
         }
 
         if should_run_stage(repository, &recording.id, PipelineStageId::Transcription)? {
-            run_pipeline_stage(
-                repository,
-                &recording,
-                PipelineStageId::Transcription,
-                transcription_payload(&recording, &settings),
-                "transcribe.run",
-                &mut run_worker,
-                &mut on_update,
-            )?;
+            match settings.transcription_engine {
+                TranscriptionEngine::None => {
+                    mark_stage_needs_setup(
+                        repository,
+                        &recording.id,
+                        PipelineStageId::Transcription,
+                        "Choose a transcription engine in Settings",
+                    )?;
+                    on_update(repository)?;
+                }
+                TranscriptionEngine::Local if !local_runtime_ready(repository)? => {
+                    mark_stage_needs_setup(
+                        repository,
+                        &recording.id,
+                        PipelineStageId::Transcription,
+                        "Install the local runtime in Settings",
+                    )?;
+                    on_update(repository)?;
+                }
+                TranscriptionEngine::Local => run_pipeline_stage(
+                    repository,
+                    &recording,
+                    PipelineStageId::Transcription,
+                    transcription_payload(&recording, &settings),
+                    "transcribe.run",
+                    &mut run_worker,
+                    &mut on_update,
+                )?,
+                TranscriptionEngine::Cloud => run_cloud_transcription_stage(
+                    repository,
+                    &recording,
+                    &settings,
+                    &mut on_update,
+                )?,
+            }
         }
 
-        if stage_is_complete(repository, &recording.id, PipelineStageId::Transcription)?
-            && should_run_stage(repository, &recording.id, PipelineStageId::Diarization)?
+        if !stage_is_complete(repository, &recording.id, PipelineStageId::Transcription)? {
+            continue;
+        }
+
+        if should_run_stage(repository, &recording.id, PipelineStageId::Diarization)?
+            && !settings.speakers_enabled
         {
+            mark_stage_skipped(
+                repository,
+                &recording.id,
+                PipelineStageId::Diarization,
+                "Speaker labels are off",
+            )?;
+            on_update(repository)?;
+        }
+
+        if should_run_stage(repository, &recording.id, PipelineStageId::Diarization)? {
             match settings.diarization_backend {
+                DiarizationBackend::Pyannote if !local_runtime_ready(repository)? => {
+                    mark_stage_needs_setup(
+                        repository,
+                        &recording.id,
+                        PipelineStageId::Diarization,
+                        "Install the local runtime in Settings",
+                    )?;
+                    on_update(repository)?;
+                }
                 DiarizationBackend::Pyannote => {
                     let diarization_api_key = if exact_one_speaker_diarization(&settings) {
                         String::new()
@@ -183,20 +232,7 @@ where
                 continue;
             }
 
-            let api_key = repository
-                .read_summary_provider_api_key()
-                .map_err(|error| error.to_string())?
-                .unwrap_or_default();
-
-            run_pipeline_stage(
-                repository,
-                &recording,
-                PipelineStageId::Summary,
-                summary_payload(&recording, &settings, api_key),
-                "summarize.run",
-                &mut run_worker,
-                &mut on_update,
-            )?;
+            run_cloud_summary_stage(repository, &recording, &settings, &mut on_update)?;
         }
 
         repository
@@ -527,7 +563,7 @@ fn complete_disabled_summary_stage(
     )
 }
 
-fn mark_stage_complete(
+pub(super) fn mark_stage_complete(
     repository: &mut AppRepository,
     recording_id: &str,
     stage: PipelineStageId,
@@ -601,7 +637,7 @@ fn mark_stage_skipped(
         .map_err(|error| error.to_string())
 }
 
-fn mark_stage_failed(
+pub(super) fn mark_stage_failed(
     repository: &mut AppRepository,
     recording_id: &str,
     stage: PipelineStageId,
@@ -742,20 +778,28 @@ fn exact_one_speaker_diarization(settings: &AppSettings) -> bool {
     settings.speaker_count_mode == SpeakerCountMode::Exact && settings.exact_speakers == Some(1)
 }
 
-fn summary_payload(
-    recording: &Recording,
-    settings: &AppSettings,
-    api_key: String,
-) -> serde_json::Value {
-    let artifact_directory = PathBuf::from(&recording.artifact_directory);
+fn local_runtime_ready(repository: &AppRepository) -> Result<bool, String> {
+    repository
+        .desktop_runtime_status()
+        .map(|status| status.worker_setup_status == WorkerSetupStatus::Ready)
+        .map_err(|error| error.to_string())
+}
 
-    serde_json::json!({
-        "output_directory": artifact_directory,
-        "provider_base_url": settings.provider_base_url,
-        "api_key": api_key,
-        "model": settings.provider_model,
-        "diarized_transcript_path": diarized_transcript_path(&artifact_directory),
-        "transcript_path": raw_transcript_path(&artifact_directory),
-        "summary_prompt": settings.summary_prompt,
-    })
+pub(super) fn start_stage(
+    repository: &mut AppRepository,
+    recording_id: &str,
+    stage: PipelineStageId,
+    message: &str,
+) -> Result<(), String> {
+    repository
+        .update_job(
+            &pipeline_job_id(recording_id, stage)?,
+            PipelineStageStatus::Running,
+            5,
+            message,
+        )
+        .and_then(|()| {
+            repository.append_event(recording_id, stage, PipelineStageStatus::Running, message)
+        })
+        .map_err(|error| error.to_string())
 }

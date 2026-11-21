@@ -49,6 +49,11 @@ beforeEach(() => {
                 modelStorageDirectory: '/models',
                 databasePath: '/db',
                 providerApiKeyConfigured: true,
+                transcriptionEngine: 'local',
+                transcriptionCloudApiKeyConfigured: false,
+                diarizationBackend: 'sortformer',
+                sortformerReady: false,
+                diarizationRuntimeReady: false,
                 huggingFaceTokenConfigured: false,
                 modelRecommendation: {
                   recommendedModel: 'small',
@@ -58,6 +63,8 @@ beforeEach(() => {
               }
             }
           },
+          setupProgress: { value: { status: 'ready', step: '', error: null } },
+          sortformerProgress: { value: null },
           settingsValidationErrors: { value: errors },
           selectedModel: { value: { name: 'small', installed: true, setupRequired: false } },
           displayHotkey: (value: string) => value,
@@ -70,12 +77,19 @@ beforeEach(() => {
           savingSettings: { value: false },
           loading: { value: false },
           installingModel: { value: false },
+          setupRunning: { value: false },
           updateChecking: { value: false },
           updateInstalling: { value: false }
         },
         settings: {
           draft: {
-            value: { whisperModel: 'small', speakerCountMode: 'automatic', ...draftOverrides }
+            value: {
+              whisperModel: 'small',
+              speakerCountMode: 'automatic',
+              transcriptionEngine: 'local',
+              diarizationBackend: 'sortformer',
+              ...draftOverrides
+            }
           },
           hotkeyField: key('hotkey'),
           toggles: {},
@@ -88,6 +102,7 @@ beforeEach(() => {
           numberFields: ['sampleRate', 'exactSpeakers', 'minSpeakers', 'maxSpeakers'].map(key),
           folderFields: ['outputDirectory', 'modelStorageDirectory'].map(key),
           selectFields: [
+            'transcriptionEngine',
             'whisperModel',
             'transcriptionLanguage',
             'computeType',
@@ -144,11 +159,25 @@ describe('useSettingsPage', () => {
       'systemAudioSource'
     ]);
     expect(result.current.data.transcriptionFields.map((field) => field.key)).toEqual([
-      'whisperModel',
+      'transcriptionEngine',
       'transcriptionLanguage',
+      'whisperModel',
       'computeType'
     ]);
     expect(result.current.data.diarizationField?.key).toBe('diarizationBackend');
+  });
+
+  it('shows only the fields that belong to the chosen engine', () => {
+    const keysFor = (engine: string) => {
+      draftOverrides = { transcriptionEngine: engine };
+
+      return renderHook(() =>
+        useSettingsPage('transcription')
+      ).result.current.data.transcriptionFields.map((field) => field.key);
+    };
+
+    expect(keysFor('none')).toEqual(['transcriptionEngine']);
+    expect(keysFor('cloud')).toEqual(['transcriptionEngine', 'transcriptionLanguage']);
   });
 
   it('shows speaker count inputs only for the chosen mode', () => {

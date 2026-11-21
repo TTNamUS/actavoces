@@ -58,8 +58,7 @@ export const useApp = () => {
   });
   const updates = useUpdates({
     loading,
-    setError,
-    setupReady: runtime.setupReady
+    setError
   });
   const navigation = useAppNavigation({
     hasUnsavedSettings: settings.hasUnsavedSettings,
@@ -109,8 +108,6 @@ export const useApp = () => {
       installingModel: workerRuntime.installingModel,
       updateChecking: updates.updateChecking,
       updateInstalling: updates.updateInstalling,
-      setupReady: runtime.setupReady,
-      needsDiarizationSetup: runtime.needsDiarizationSetup,
       setupRunning: runtime.setupRunning,
       error: appErrorSignal,
       isRecording: recordings.isRecording,
@@ -130,6 +127,7 @@ export const useApp = () => {
       refreshModels: workerRuntime.actions.refreshModels,
       installSelectedModel: workerRuntime.actions.installSelectedModel,
       clearProviderApiKey: settings.actions.clearProviderApiKey,
+      clearTranscriptionCloudApiKey: settings.actions.clearTranscriptionCloudApiKey,
       clearHuggingFaceToken: settings.actions.clearHuggingFaceToken,
       saveSettings: settings.actions.saveSettings,
       discardSettings: () => resetSettingsDraft(appSnapshotSignal.value.settings),
@@ -137,9 +135,9 @@ export const useApp = () => {
       checkForUpdates: updates.actions.checkForUpdates,
       dismissUpdateToast: updates.actions.dismissUpdateToast,
       installUpdate: updates.actions.installUpdate,
-      retrySetup: runtime.actions.retrySetup,
-      setupDiarization: runtime.actions.setupDiarization,
-      skipDiarizationSetup: runtime.actions.skipDiarizationSetup
+      installLocalRuntime: runtime.actions.installLocalRuntime,
+      installSpeakerLabels: runtime.actions.installSpeakerLabels,
+      installPyannote: runtime.actions.installPyannote
     }
   };
 };

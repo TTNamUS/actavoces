@@ -119,7 +119,15 @@ export interface AppSettings {
   providerBaseUrl: string;
   providerModel: string;
   summaryPrompt: string;
+  transcriptionEngine: TranscriptionEngine;
+  transcriptionCloudBaseUrl: string;
+  transcriptionCloudModel: string;
+  transcriptionCloudApiKeyConfigured: boolean;
+  speakersEnabled: boolean;
+  sortformerReady: boolean;
 }
+
+export type TranscriptionEngine = 'none' | 'local' | 'cloud';
 
 export interface ModelRecommendation {
   recommendedModel: string;
@@ -135,9 +143,12 @@ export type AppSettingsUpdate = Omit<
   | 'huggingFaceTokenConfigured'
   | 'diarizationRuntimeReady'
   | 'modelRecommendation'
+  | 'transcriptionCloudApiKeyConfigured'
+  | 'sortformerReady'
 > & {
   providerApiKey: string;
   huggingFaceToken: string;
+  transcriptionCloudApiKey: string;
 };
 
 export interface DesktopRuntimeStatus {

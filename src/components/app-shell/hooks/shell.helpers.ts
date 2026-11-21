@@ -1,5 +1,5 @@
 import { IconActivity, IconBooks, IconSettings, IconSparkles } from '@tabler/icons-react';
-import type { DesktopRuntimeStatus } from '../../../types/desktop';
+import type { AppSettings, DesktopRuntimeStatus } from '../../../types/desktop';
 import type { StatusTone } from '../../../utils/status';
 
 export interface WorkerPillInfo {
@@ -7,16 +7,31 @@ export interface WorkerPillInfo {
   tone: StatusTone;
 }
 
-export const workerPillInfo = (desktop: DesktopRuntimeStatus): WorkerPillInfo => {
-  if (desktop.workerError !== null) {
-    return { label: 'Worker error', tone: 'ember' };
+export const workerPillInfo = (
+  desktop: DesktopRuntimeStatus,
+  settings: Pick<AppSettings, 'transcriptionEngine'>
+): WorkerPillInfo => {
+  if (settings.transcriptionEngine === 'none') {
+    return { label: 'Recording only', tone: 'neutral' };
   }
 
-  if (desktop.workerHealthOk) {
-    return { label: 'Worker healthy', tone: 'moss' };
+  if (settings.transcriptionEngine === 'cloud') {
+    return { label: 'Cloud transcription', tone: 'moss' };
   }
 
-  return { label: 'Worker starting…', tone: 'amber' };
+  if (desktop.workerError !== null || desktop.workerSetupStatus === 'failed') {
+    return { label: 'Runtime error', tone: 'ember' };
+  }
+
+  if (desktop.workerSetupStatus === 'installing') {
+    return { label: 'Installing runtime…', tone: 'amber' };
+  }
+
+  if (desktop.workerSetupStatus === 'missing') {
+    return { label: 'Runtime not installed', tone: 'amber' };
+  }
+
+  return { label: 'Local runtime ready', tone: 'moss' };
 };
 
 export const NAV_ICON: Record<string, typeof IconBooks> = {

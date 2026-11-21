@@ -35,6 +35,16 @@ export const validateSettingsDraft = (
     }
   }
 
+  if (settings.transcriptionEngine === 'cloud') {
+    if (settings.transcriptionCloudBaseUrl.trim().length === 0) {
+      errors.push('Cloud transcription base URL is required.');
+    }
+
+    if (settings.transcriptionCloudModel.trim().length === 0) {
+      errors.push('Cloud transcription model is required.');
+    }
+  }
+
   if (settings.speakerCountMode === 'exact' && (settings.exactSpeakers ?? 0) <= 0) {
     errors.push('Exact speaker count must be greater than zero.');
   }

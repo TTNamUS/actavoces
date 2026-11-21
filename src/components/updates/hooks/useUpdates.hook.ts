@@ -8,7 +8,6 @@ import { errorMessage, isTauriRuntime } from '../../app-shell/hooks/appRuntime.h
 interface UseUpdatesInput {
   loading: Signal<boolean>;
   setError: (message: string | null) => void;
-  setupReady: Signal<boolean>;
 }
 
 type UpdateCheckStatus =
@@ -24,7 +23,7 @@ interface UpdateToast {
   message: string;
 }
 
-export const useUpdates = ({ loading, setError, setupReady }: UseUpdatesInput) => {
+export const useUpdates = ({ loading, setError }: UseUpdatesInput) => {
   const updateChecking = useSignal(false);
   const updateInstalling = useSignal(false);
   const updateAvailable = useSignal<Update | null>(null);
@@ -137,7 +136,7 @@ export const useUpdates = ({ loading, setError, setupReady }: UseUpdatesInput) =
   }, []);
 
   useEffect(() => {
-    if (!isTauriRuntime() || initialCheckRequested.value || !setupReady.value || loading.value) {
+    if (!isTauriRuntime() || initialCheckRequested.value || loading.value) {
       return;
     }
 
@@ -145,7 +144,7 @@ export const useUpdates = ({ loading, setError, setupReady }: UseUpdatesInput) =
     window.requestAnimationFrame(() => {
       void runUpdateCheck(false);
     });
-  }, [setupReady.value, loading.value]);
+  }, [loading.value]);
 
   return {
     updateChecking,

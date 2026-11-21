@@ -1,6 +1,7 @@
 mod app;
 mod artifacts;
 mod capture;
+mod cloud;
 mod diagnostics;
 mod diarization;
 mod domain;
@@ -112,6 +113,8 @@ pub fn run() {
             app::commands::settings::clear_hugging_face_token,
             app::commands::settings::setup_diarization_runtime,
             app::commands::settings::skip_diarization_setup,
+            app::commands::settings::setup_speaker_labels,
+            app::commands::settings::clear_transcription_cloud_api_key,
             app::commands::recordings::start_recording,
             app::commands::recordings::stop_recording,
             app::commands::recordings::delete_recording,

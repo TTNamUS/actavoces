@@ -4,8 +4,12 @@ import type {
   AppSettingsUpdate,
   CaptureDeviceInfo,
   DesktopRuntimeStatus,
-  ModelInventoryItem
+  ModelInventoryItem,
+  SortformerSetupProgress,
+  WorkerSetupProgress,
+  WorkerSetupStatus
 } from '../../../types/desktop';
+import type { AnyStatus } from '../../../utils/status';
 
 export interface SettingsTextField {
   key: keyof AppSettingsUpdate;
@@ -117,7 +121,12 @@ export const buildSettingsUpdate = (settings: AppSettings): AppSettingsUpdate =>
   providerBaseUrl: settings.providerBaseUrl,
   providerModel: settings.providerModel,
   providerApiKey: '',
-  summaryPrompt: settings.summaryPrompt
+  summaryPrompt: settings.summaryPrompt,
+  transcriptionEngine: settings.transcriptionEngine,
+  transcriptionCloudBaseUrl: settings.transcriptionCloudBaseUrl,
+  transcriptionCloudModel: settings.transcriptionCloudModel,
+  transcriptionCloudApiKey: '',
+  speakersEnabled: settings.speakersEnabled
 });
 
 export const settingsDraftChanged = (draft: AppSettingsUpdate, settings: AppSettings): boolean =>
@@ -259,6 +268,85 @@ export const runtimeErrors = (desktop: DesktopRuntimeStatus): string[] =>
   [desktop.hotkeyError, desktop.workerError, desktop.cudaError].filter(
     (error): error is string => error !== null
   );
+
+export interface RuntimeInstallInfo {
+  badge: { label: string; status: AnyStatus };
+  step: string | null;
+  error: string | null;
+  installing: boolean;
+  ready: boolean;
+  progress: number | null;
+}
+
+export const localRuntimeInfo = (
+  desktop: DesktopRuntimeStatus,
+  progress: WorkerSetupProgress
+): RuntimeInstallInfo => {
+  const status = desktop.workerSetupStatus === 'installing' ? 'installing' : progress.status;
+
+  if (status === 'ready') {
+    return {
+      badge: { label: 'Installed', status: 'complete' },
+      step: null,
+      error: null,
+      installing: false,
+      ready: true,
+      progress: 100
+    };
+  }
+
+  if (status === 'installing') {
+    return {
+      badge: { label: 'Installing…', status: 'running' },
+      step: progress.step,
+      error: null,
+      installing: true,
+      ready: false,
+      progress: null
+    };
+  }
+
+  return {
+    badge:
+      status === 'failed'
+        ? { label: 'Install failed', status: 'failed' }
+        : { label: 'Not installed', status: 'needsSetup' },
+    step: null,
+    error: status === 'failed' ? (progress.error ?? desktop.workerSetupError) : null,
+    installing: false,
+    ready: false,
+    progress: null
+  };
+};
+
+export const speakerLabelsInfo = (
+  settings: AppSettings,
+  sortformer: SortformerSetupProgress | null,
+  workerSetupStatus: WorkerSetupStatus
+): RuntimeInstallInfo & { backend: AppSettings['diarizationBackend']; canInstall: boolean } => {
+  const backend = settings.diarizationBackend;
+  const ready =
+    backend === 'sortformer' ? settings.sortformerReady : settings.diarizationRuntimeReady;
+  const installing = backend === 'sortformer' && sortformer?.status === 'downloading';
+  const failed = backend === 'sortformer' && sortformer?.status === 'failed';
+
+  return {
+    backend,
+    ready,
+    installing,
+    progress: installing ? (sortformer?.progress ?? null) : ready ? 100 : null,
+    step: installing ? (sortformer?.step ?? null) : null,
+    error: failed ? (sortformer?.error ?? 'Setup failed') : null,
+    canInstall: backend === 'sortformer' || workerSetupStatus === 'ready',
+    badge: ready
+      ? { label: 'Installed', status: 'complete' }
+      : installing
+        ? { label: 'Installing…', status: 'running' }
+        : failed
+          ? { label: 'Install failed', status: 'failed' }
+          : { label: 'Not installed', status: 'needsSetup' }
+  };
+};
 
 export const modelBadge = (
   model: ModelInventoryItem | null | undefined

@@ -22,7 +22,11 @@ pub(crate) use render::{
 };
 pub(crate) use setup::prepare_sortformer_diarization;
 
-const SORTFORMER_MODEL_FILE: &str = "diar_streaming_sortformer_4spk-v2.1.onnx";
+pub(crate) fn load_mono_16k_samples(audio_path: &Path) -> Result<Vec<f32>, String> {
+    audio::sortformer_audio(audio_path).map(|audio| audio.samples)
+}
+
+pub(crate) const SORTFORMER_MODEL_FILE: &str = "diar_streaming_sortformer_4spk-v2.1.onnx";
 const SORTFORMER_SAMPLE_RATE: u32 = 16_000;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

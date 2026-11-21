@@ -91,7 +91,13 @@ const baseSettings: AppSettings = {
   summaryEnabled: false,
   providerBaseUrl: 'https://api.openai.com/v1',
   providerModel: '',
-  summaryPrompt: 'Summary'
+  summaryPrompt: 'Summary',
+  transcriptionEngine: 'local',
+  transcriptionCloudBaseUrl: 'https://api.openai.com/v1',
+  transcriptionCloudModel: 'whisper-1',
+  transcriptionCloudApiKeyConfigured: false,
+  speakersEnabled: true,
+  sortformerReady: false
 };
 
 const makeRecording = (id: string): Recording => ({
@@ -217,45 +223,31 @@ describe('useApp hook', () => {
     });
   });
 
-  it('loads a snapshot in Tauri when the startup snapshot event was missed', async () => {
+  it('loads a snapshot in Tauri without installing the local runtime on startup', async () => {
     Object.defineProperty(window, '__TAURI_INTERNALS__', {
       configurable: true,
       value: {}
     });
-    appSnapshotSignal.value = makeSnapshot({
-      desktop: {
-        ...makeSnapshot().desktop,
-        workerSetupStatus: 'missing',
-        workerSetupStep: '',
-        workerSetupError: null
-      },
-      settings: {
-        ...baseSettings,
-        databasePath: ''
-      }
-    });
-    const bootstrapSnapshot = makeSnapshot();
-
     vi.mocked(getAppSnapshot).mockResolvedValue(
       makeSnapshot({
         desktop: {
           ...makeSnapshot().desktop,
           workerSetupStatus: 'missing',
-          workerSetupStep: 'Preparing local worker runtime',
+          workerSetupStep: '',
           workerSetupError: null
-        }
+        },
+        settings: { ...baseSettings, transcriptionEngine: 'none' }
       })
     );
-    vi.mocked(bootstrapWorkerRuntime).mockResolvedValue(bootstrapSnapshot);
 
     const { result } = renderHook(() => useApp());
 
     await waitFor(() => {
-      expect(bootstrapWorkerRuntime).toHaveBeenCalled();
+      expect(result.current.status.loading.value).toBe(false);
     });
 
-    expect(result.current.data.snapshot.value.desktop.workerSetupStatus).toBe('ready');
-    expect(result.current.data.setupProgress.value.status).toBe('ready');
+    expect(result.current.data.snapshot.value.desktop.workerSetupStatus).toBe('missing');
+    expect(bootstrapWorkerRuntime).not.toHaveBeenCalled();
   });
 
   it('retries the Tauri snapshot while the backend is still starting', async () => {
@@ -263,34 +255,31 @@ describe('useApp hook', () => {
       configurable: true,
       value: {}
     });
-    appSnapshotSignal.value = makeSnapshot({
-      desktop: {
-        ...makeSnapshot().desktop,
-        workerSetupStatus: 'missing',
-        workerSetupStep: '',
-        workerSetupError: null
-      },
-      settings: {
-        ...baseSettings,
-        databasePath: ''
-      }
-    });
-
     vi.mocked(getAppSnapshot)
       .mockRejectedValueOnce(new Error('ActaVoces is still starting'))
       .mockResolvedValue(makeSnapshot());
-    vi.mocked(bootstrapWorkerRuntime).mockResolvedValue(makeSnapshot());
 
     renderHook(() => useApp());
 
     await waitFor(() => {
       expect(getAppSnapshot).toHaveBeenCalledTimes(2);
     });
-    await waitFor(() => {
-      expect(bootstrapWorkerRuntime).toHaveBeenCalled();
-    });
+    expect(bootstrapWorkerRuntime).not.toHaveBeenCalled();
   });
 
+  it('installs the local runtime only when asked', async () => {
+    vi.mocked(getAppSnapshot).mockResolvedValue(makeSnapshot());
+    vi.mocked(bootstrapWorkerRuntime).mockResolvedValue(makeSnapshot());
+
+    const { result } = renderHook(() => useApp());
+
+    await act(async () => {
+      await result.current.actions.installLocalRuntime();
+    });
+
+    expect(bootstrapWorkerRuntime).toHaveBeenCalledTimes(1);
+    expect(result.current.data.setupProgress.value.status).toBe('ready');
+  });
   it('checks for updates once after the main app is ready', async () => {
     Object.defineProperty(window, '__TAURI_INTERNALS__', {
       configurable: true,

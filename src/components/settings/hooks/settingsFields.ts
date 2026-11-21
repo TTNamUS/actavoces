@@ -210,6 +210,25 @@ const textFields = (
     inputType: 'password',
     value: draft.value.providerApiKey,
     onInput: onInput('providerApiKey')
+  },
+  {
+    key: 'transcriptionCloudBaseUrl',
+    label: 'Base URL',
+    value: draft.value.transcriptionCloudBaseUrl,
+    onInput: onInput('transcriptionCloudBaseUrl')
+  },
+  {
+    key: 'transcriptionCloudModel',
+    label: 'Model',
+    value: draft.value.transcriptionCloudModel,
+    onInput: onInput('transcriptionCloudModel')
+  },
+  {
+    key: 'transcriptionCloudApiKey',
+    label: 'API key',
+    inputType: 'password',
+    value: draft.value.transcriptionCloudApiKey,
+    onInput: onInput('transcriptionCloudApiKey')
   }
 ];
 
@@ -330,6 +349,15 @@ const toggles = (draft: Signal<AppSettingsUpdate>) => ({
       draft.value = {
         ...draft.value,
         summaryEnabled: checked
+      };
+    }
+  },
+  speakersEnabled: {
+    checked: draft.value.speakersEnabled,
+    onCheckedChange: (checked: boolean) => {
+      draft.value = {
+        ...draft.value,
+        speakersEnabled: checked
       };
     }
   }

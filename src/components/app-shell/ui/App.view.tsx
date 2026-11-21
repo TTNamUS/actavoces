@@ -1,5 +1,4 @@
 import type { JSX } from 'preact';
-import { SetupPage } from '../../../pages/SetupPage';
 import { AppRoutes } from '../../../routes/AppRoutes';
 import { RouteBoundaryContainer } from '../containers/RouteBoundary.container';
 import type { ShellModel } from '../hooks/useShell.hook';
@@ -12,10 +11,10 @@ interface AppViewProps {
 
 export const AppView = ({ shell }: AppViewProps): JSX.Element => (
   <main class='flex h-screen overflow-hidden bg-canvas text-ink'>
-    {shell.status.showChrome ? <ShellSidebar shell={shell} /> : null}
+    <ShellSidebar shell={shell} />
     <section class='min-w-0 flex-1 overflow-y-auto'>
       <RouteBoundaryContainer>
-        {shell.status.setupReady ? <AppRoutes /> : <SetupPage />}
+        <AppRoutes />
       </RouteBoundaryContainer>
     </section>
     <AppToasts shell={shell} />

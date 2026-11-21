@@ -3,6 +3,7 @@ import { useEffect } from 'preact/hooks';
 import {
   clearHuggingFaceToken,
   clearSummaryProviderApiKey,
+  clearTranscriptionCloudApiKey,
   updateAppSettings
 } from '../../../services/desktop/app.service';
 import { appSnapshotSignal } from '../../../stores/app.store';
@@ -90,6 +91,22 @@ export const useSettings = ({ setError, setSnapshot }: UseSettingsInput) => {
     }
   };
 
+  const clearCloudTranscriptionKey = async () => {
+    savingSettings.value = true;
+    setError(null);
+
+    try {
+      const snapshot = await clearTranscriptionCloudApiKey();
+
+      setSnapshot(snapshot);
+      resetDraft(snapshot.settings);
+    } catch (error) {
+      setError(errorMessage(error, 'Unable to clear transcription API key'));
+    } finally {
+      savingSettings.value = false;
+    }
+  };
+
   const clearHuggingFaceTokenAction = async () => {
     savingSettings.value = true;
     setError(null);
@@ -150,6 +167,7 @@ export const useSettings = ({ setError, setSnapshot }: UseSettingsInput) => {
     actions: {
       saveSettings,
       clearProviderApiKey,
+      clearTranscriptionCloudApiKey: clearCloudTranscriptionKey,
       clearHuggingFaceToken: clearHuggingFaceTokenAction
     }
   };

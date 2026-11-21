@@ -186,10 +186,7 @@ src/components/settings/                      6 sections: general, recording, tr
   hooks/useSettingsPage.hook.ts             section routing + field picking
   hooks/useSettings.hook.ts, settingsFields.ts, ...
   ui/Settings.view.tsx, SettingsNav, Settings*Section.view.tsx
-
-
-src/components/setup/                         first-run step flow (runtime, speakers)
-  containers/ hooks/ ui/
+  engine choice (off / local / cloud) and on-demand runtime installs live here
 
 src/components/recording-overlay/              record bar pill (transparent window)
   containers/ hooks/ ui/
@@ -370,7 +367,8 @@ src-tauri/src/
   app/                Tauri command registration and app orchestration
   domain/             shared DTOs and state types
   storage/            SQLite repository and persistence
-  worker/             worker bootstrap/runtime command execution
+  worker/             worker bootstrap/runtime command execution (local engine, installed on demand)
+  cloud/              OpenAI-compatible cloud transcription and summary clients (no Python needed)
   capture/            native audio capture and mixing
   settings/           settings defaults, validation, keyring secrets
   artifacts/          artifact/stage/path helpers

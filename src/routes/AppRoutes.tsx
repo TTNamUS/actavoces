@@ -5,7 +5,6 @@ import { AskPage } from '../pages/AskPage';
 import { LibraryPage } from '../pages/LibraryPage';
 import { RecordingDetailPage } from '../pages/RecordingDetailPage';
 import { SettingsPage } from '../pages/SettingsPage';
-import { SetupPage } from '../pages/SetupPage';
 
 export const AppRoutes = (): JSX.Element => (
   <Switch>
@@ -21,9 +20,6 @@ export const AppRoutes = (): JSX.Element => (
     </Route>
     <Route path='/settings/:section?'>
       {(params) => <SettingsPage section={params.section} />}
-    </Route>
-    <Route path='/setup'>
-      <SetupPage />
     </Route>
     <Route>
       <Redirect replace to='/' />

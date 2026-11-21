@@ -1,14 +1,17 @@
+import type { AppSettingsUpdate } from '../../../types/desktop';
 import { settingsPath } from '../../../utils/routes';
 import { isThemeMode } from '../../../utils/theme';
 import { useAppContext } from '../../app-shell/context/AppContext';
 import { useTheme } from '../../shared/hooks/useTheme.hook';
 import {
+  localRuntimeInfo,
   modelBadge,
   pickFields,
   resolveSettingsSection,
   runtimeErrors,
   runtimeRows,
-  SETTINGS_SECTIONS
+  SETTINGS_SECTIONS,
+  speakerLabelsInfo
 } from './settings.helpers';
 
 const THEME_OPTIONS = [
@@ -16,6 +19,12 @@ const THEME_OPTIONS = [
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' }
 ];
+
+const TRANSCRIPTION_FIELD_KEYS: Record<AppSettingsUpdate['transcriptionEngine'], string[]> = {
+  none: ['transcriptionEngine'],
+  cloud: ['transcriptionEngine', 'transcriptionLanguage'],
+  local: ['transcriptionEngine', 'transcriptionLanguage', 'whisperModel', 'computeType']
+};
 
 export const useSettingsPage = (sectionParam?: string) => {
   const app = useAppContext();
@@ -58,11 +67,18 @@ export const useSettingsPage = (sectionParam?: string) => {
       sampleRateField: pickFields(settings.numberFields, ['sampleRate'])[0] ?? null,
       outputFolder: pickFields(settings.folderFields, ['outputDirectory'])[0] ?? null,
       modelFolder: pickFields(settings.folderFields, ['modelStorageDirectory'])[0] ?? null,
-      transcriptionFields: pickFields(settings.selectFields, [
-        'whisperModel',
-        'transcriptionLanguage',
-        'computeType'
+      engine: draft.transcriptionEngine,
+      transcriptionFields: pickFields(
+        settings.selectFields,
+        TRANSCRIPTION_FIELD_KEYS[draft.transcriptionEngine]
+      ),
+      cloudFields: pickFields(settings.textFields, [
+        'transcriptionCloudBaseUrl',
+        'transcriptionCloudModel',
+        'transcriptionCloudApiKey'
       ]),
+      cloudApiKeyConfigured: snapshot.settings.transcriptionCloudApiKeyConfigured,
+      localRuntime: localRuntimeInfo(snapshot.desktop, app.data.setupProgress.value),
       glossary: settings.glossaryField,
       model: {
         name: draft.whisperModel,
@@ -89,11 +105,20 @@ export const useSettingsPage = (sectionParam?: string) => {
             : []
       ),
       usesPyannote: draft.diarizationBackend === 'pyannote',
+      speakerLabels: speakerLabelsInfo(
+        snapshot.settings,
+        app.data.sortformerProgress.value,
+        snapshot.desktop.workerSetupStatus
+      ),
       huggingFaceToken: {
         field: settings.huggingFaceTokenField,
         configured: snapshot.settings.huggingFaceTokenConfigured
       },
-      providerFields: settings.textFields,
+      providerFields: pickFields(settings.textFields, [
+        'providerBaseUrl',
+        'providerModel',
+        'providerApiKey'
+      ]),
       apiKeyConfigured: snapshot.settings.providerApiKeyConfigured,
       promptFields: settings.textareaFields,
       runtime: {
@@ -129,12 +154,17 @@ export const useSettingsPage = (sectionParam?: string) => {
       saving: app.status.savingSettings.value,
       loading: app.status.loading.value,
       installingModel: app.status.installingModel.value,
+      setupRunning: app.status.setupRunning.value,
       updateChecking: app.status.updateChecking.value,
       updateInstalling: app.status.updateInstalling.value
     },
     actions: {
       save: app.actions.saveSettings,
       clearProviderApiKey: app.actions.clearProviderApiKey,
+      clearCloudApiKey: app.actions.clearTranscriptionCloudApiKey,
+      installLocalRuntime: app.actions.installLocalRuntime,
+      installSpeakerLabels: app.actions.installSpeakerLabels,
+      installPyannote: app.actions.installPyannote,
       clearHuggingFaceToken: app.actions.clearHuggingFaceToken,
       refreshModels: app.actions.refreshModels,
       installModel: app.actions.installSelectedModel,

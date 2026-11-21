@@ -18,15 +18,35 @@ const desktop = (overrides: Partial<DesktopRuntimeStatus>): DesktopRuntimeStatus
 });
 
 describe('workerPillInfo', () => {
-  it('reports errors first, then health, then starting', () => {
-    expect(workerPillInfo(desktop({ workerError: 'boom', workerHealthOk: true }))).toEqual({
-      label: 'Worker error',
+  it('shows recording only when no engine is chosen', () => {
+    expect(workerPillInfo(desktop({}), { transcriptionEngine: 'none' })).toEqual({
+      label: 'Recording only',
+      tone: 'neutral'
+    });
+  });
+
+  it('does not depend on the local runtime for the cloud engine', () => {
+    expect(
+      workerPillInfo(desktop({ workerSetupStatus: 'missing' }), { transcriptionEngine: 'cloud' })
+    ).toEqual({ label: 'Cloud transcription', tone: 'moss' });
+  });
+
+  it('reports local runtime install state', () => {
+    const local = { transcriptionEngine: 'local' } as const;
+
+    expect(workerPillInfo(desktop({ workerSetupStatus: 'missing' }), local).label).toBe(
+      'Runtime not installed'
+    );
+    expect(workerPillInfo(desktop({ workerSetupStatus: 'installing' }), local).label).toBe(
+      'Installing runtime…'
+    );
+    expect(workerPillInfo(desktop({ workerError: 'boom' }), local)).toEqual({
+      label: 'Runtime error',
       tone: 'ember'
     });
-    expect(workerPillInfo(desktop({ workerHealthOk: true }))).toEqual({
-      label: 'Worker healthy',
+    expect(workerPillInfo(desktop({}), local)).toEqual({
+      label: 'Local runtime ready',
       tone: 'moss'
     });
-    expect(workerPillInfo(desktop({}))).toEqual({ label: 'Worker starting…', tone: 'amber' });
   });
 });

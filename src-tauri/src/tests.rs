@@ -11,7 +11,7 @@ use crate::app::commands::{
 use crate::artifacts::{
     artifact_directory, capture_artifacts_with_readiness, diarization_path,
     diarized_transcript_path, microphone_audio_path, mixed_audio_path, raw_segments_path,
-    raw_transcript_path, raw_words_path, summary_path,
+    raw_transcript_path, raw_words_path,
 };
 use crate::capture::audio::{
     dedupe_capture_devices, is_default_system_source_name, is_system_monitor_device_name,
@@ -20,7 +20,8 @@ use crate::capture::audio::{
 use crate::domain::types::{
     AppSettingsUpdate, ArtifactKind, CaptureDeviceInfo, DesktopRuntimeStatus, DiarizationBackend,
     ModelInventoryItem, OverlayDisplayMode, OverlayPosition, PipelineStageId, PipelineStageStatus,
-    RecordingStatus, SpeakerCountMode, SpeakerRenameInput, WorkerEvent, WorkerSetupStatus,
+    RecordingStatus, SpeakerCountMode, SpeakerRenameInput, TranscriptionEngine, WorkerEvent,
+    WorkerSetupProgress, WorkerSetupStatus,
 };
 use crate::settings::{
     default_settings,
@@ -698,6 +699,7 @@ fn resume_pipeline_runs_worker_events_and_persists_artifacts() {
     let database_path = test_database_path("pipeline-resume");
     let artifact_path = test_artifact_path("pipeline-recording");
     let mut repository = AppRepository::open(&database_path).unwrap();
+    enable_local_pipeline(&mut repository, true);
     let mut capture_backend = FileAudioCaptureBackend::default();
     let recording = NewRecording {
         id: "recording-4".to_owned(),
@@ -843,6 +845,7 @@ fn resume_pipeline_sends_transcription_context_when_configured() {
     let database_path = test_database_path("pipeline-transcription-context");
     let artifact_path = test_artifact_path("pipeline-transcription-context-recording");
     let mut repository = AppRepository::open(&database_path).unwrap();
+    enable_local_pipeline(&mut repository, true);
     let mut capture_backend = FileAudioCaptureBackend::default();
     let recording = NewRecording {
         id: "recording-transcription-context".to_owned(),
@@ -914,37 +917,32 @@ fn resume_pipeline_sends_transcription_context_when_configured() {
     );
 }
 
-#[test]
-fn resume_pipeline_sends_snake_case_summary_payload_without_required_api_key() {
-    let database_path = test_database_path("pipeline-summary-payload");
-    let artifact_path = test_artifact_path("pipeline-summary-payload-recording");
-    let mut repository = AppRepository::open(&database_path).unwrap();
+fn enable_local_pipeline(repository: &mut AppRepository, speakers_enabled: bool) {
+    repository
+        .set_setting("transcriptionEngine", "\"local\"")
+        .unwrap();
+    repository
+        .set_setting("speakersEnabled", &speakers_enabled.to_string())
+        .unwrap();
+    repository
+        .update_worker_setup_progress(&WorkerSetupProgress {
+            status: WorkerSetupStatus::Ready,
+            step: "Worker runtime ready".to_owned(),
+            error: None,
+        })
+        .unwrap();
+}
+
+fn finish_test_recording(repository: &mut AppRepository, name: &str) -> NewRecording {
+    let artifact_path = test_artifact_path(name);
     let mut capture_backend = FileAudioCaptureBackend::default();
     let recording = NewRecording {
-        id: "recording-summary-payload".to_owned(),
+        id: format!("recording-{name}"),
         title: "Meeting".to_owned(),
         started_at: "1".to_owned(),
         artifact_directory: artifact_path.display().to_string(),
     };
 
-    repository.set_setting("summaryEnabled", "true").unwrap();
-    repository
-        .set_setting("providerBaseUrl", "http://localhost:11434/v1")
-        .unwrap();
-    repository.set_setting("providerModel", "llama3").unwrap();
-    repository
-        .set_setting(
-            "diarizationBackend",
-            &serde_json::to_string(&DiarizationBackend::Pyannote).unwrap(),
-        )
-        .unwrap();
-    repository
-        .set_setting(
-            "speakerCountMode",
-            &serde_json::to_string(&SpeakerCountMode::Exact).unwrap(),
-        )
-        .unwrap();
-    repository.set_setting("exactSpeakers", "1").unwrap();
     capture_backend
         .start(&recording.id, &repository.settings().unwrap())
         .unwrap();
@@ -960,107 +958,87 @@ fn resume_pipeline_sends_snake_case_summary_payload_without_required_api_key() {
         )
         .unwrap();
 
-    let mut observed_summary_payload = None;
+    recording
+}
+
+#[test]
+fn resume_pipeline_waits_for_transcription_engine_by_default() {
+    let mut repository = AppRepository::open(&test_database_path("pipeline-no-engine")).unwrap();
+    let recording = finish_test_recording(&mut repository, "pipeline-no-engine-recording");
 
     resume_pipeline_jobs(
         &mut repository,
-        |command, payload| {
-            let output_directory_key = match command {
-                "summarize.run" => "output_directory",
-                _ => "outputDirectory",
-            };
-            let output_directory = std::path::PathBuf::from(
-                payload
-                    .get(output_directory_key)
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap(),
-            );
+        |command, _| Err(format!("worker must not run: {command}")),
+        |_| Ok(()),
+    )
+    .unwrap();
+    let job = repository
+        .job_for_recording_stage(&recording.id, PipelineStageId::Transcription)
+        .unwrap();
 
-            match command {
-                "transcribe.run" => {
-                    fs::write(
-                        raw_segments_path(&output_directory),
-                        "{\"segments\":[{\"start\":0,\"end\":1,\"text\":\"Hello\"}]}\n",
-                    )
-                    .unwrap();
-                    fs::write(raw_transcript_path(&output_directory), "# Raw\n\nHello\n").unwrap();
+    assert_eq!(job.status, PipelineStageStatus::NeedsSetup);
+    assert_eq!(
+        repository.snapshot().unwrap().recordings[0].status,
+        RecordingStatus::Processing
+    );
+}
 
-                    Ok(vec![worker_event(
-                        "transcribe.complete",
-                        serde_json::json!({
-                            "segmentsPath": raw_segments_path(&output_directory),
-                            "transcriptPath": raw_transcript_path(&output_directory),
-                        }),
-                    )])
-                }
-                "diarize.run" => {
-                    fs::write(
-                        diarization_path(&output_directory),
-                        "{\"turns\":[{\"speaker\":\"Speaker 1\",\"start\":0,\"end\":1}]}\n",
-                    )
-                    .unwrap();
-                    fs::write(
-                        diarized_transcript_path(&output_directory),
-                        "# Diarized\n\nHello\n",
-                    )
-                    .unwrap();
+#[test]
+fn resume_pipeline_waits_for_local_runtime_install() {
+    let mut repository = AppRepository::open(&test_database_path("pipeline-no-runtime")).unwrap();
+    let recording = finish_test_recording(&mut repository, "pipeline-no-runtime-recording");
 
-                    Ok(vec![worker_event(
-                        "diarize.complete",
-                        serde_json::json!({
-                            "diarizationPath": diarization_path(&output_directory),
-                            "transcriptPath": diarized_transcript_path(&output_directory),
-                        }),
-                    )])
-                }
-                "summarize.run" => {
-                    observed_summary_payload = Some(payload);
-                    fs::write(summary_path(&output_directory), "# Summary\n\nDone\n").unwrap();
+    repository
+        .set_setting("transcriptionEngine", "\"local\"")
+        .unwrap();
+    resume_pipeline_jobs(
+        &mut repository,
+        |command, _| Err(format!("worker must not run: {command}")),
+        |_| Ok(()),
+    )
+    .unwrap();
+    let job = repository
+        .job_for_recording_stage(&recording.id, PipelineStageId::Transcription)
+        .unwrap();
 
-                    Ok(vec![worker_event(
-                        "summarize.complete",
-                        serde_json::json!({
-                            "summaryPath": summary_path(&output_directory),
-                            "title": "Launch",
-                        }),
-                    )])
-                }
-                other => Err(format!("unexpected worker command: {other}")),
+    assert_eq!(job.status, PipelineStageStatus::NeedsSetup);
+    assert!(job.message.contains("local runtime"));
+}
+
+#[test]
+fn resume_pipeline_skips_speaker_labels_when_disabled() {
+    let mut repository = AppRepository::open(&test_database_path("pipeline-no-speakers")).unwrap();
+    let recording = finish_test_recording(&mut repository, "pipeline-no-speakers-recording");
+
+    enable_local_pipeline(&mut repository, false);
+    resume_pipeline_jobs(
+        &mut repository,
+        |command, payload| match command {
+            "transcribe.run" => {
+                let output_directory =
+                    std::path::PathBuf::from(payload["outputDirectory"].as_str().unwrap());
+
+                fs::write(raw_transcript_path(&output_directory), "# Raw\n\nHello\n").unwrap();
+
+                Ok(vec![worker_event(
+                    "transcribe.complete",
+                    serde_json::json!({ "transcriptPath": raw_transcript_path(&output_directory) }),
+                )])
             }
+            other => Err(format!("unexpected worker command: {other}")),
         },
         |_| Ok(()),
     )
     .unwrap();
+    let diarization = repository
+        .job_for_recording_stage(&recording.id, PipelineStageId::Diarization)
+        .unwrap();
 
-    let payload = observed_summary_payload.unwrap();
-
-    assert_eq!(payload["provider_base_url"], "http://localhost:11434/v1");
-    assert_eq!(payload["api_key"], "");
-    assert_eq!(payload["model"], "llama3");
-    assert!(payload.get("output_directory").is_some());
-    assert!(payload.get("diarized_transcript_path").is_some());
-    assert!(payload.get("transcript_path").is_some());
-    assert!(payload.get("summary_prompt").is_some());
-    assert!(payload.get("providerBaseUrl").is_none());
-    assert!(payload.get("apiKey").is_none());
-    assert!(payload.get("titlePrompt").is_none());
-
-    let snapshot = repository.snapshot().unwrap();
-    let recording = &snapshot.recordings[0];
-
-    assert_eq!(recording.title, "Launch");
-    assert!(Path::new(&recording.artifact_directory).ends_with("1970-01-01-0000-launch"));
-    assert!(summary_path(Path::new(&recording.artifact_directory)).exists());
-    assert!(fs::read_to_string(raw_transcript_path(Path::new(
-        &recording.artifact_directory
-    )))
-    .unwrap()
-    .starts_with("# Raw transcript - Launch"));
-    assert!(fs::read_to_string(diarized_transcript_path(Path::new(
-        &recording.artifact_directory
-    )))
-    .unwrap()
-    .starts_with("# Diarized transcript - Launch"));
+    assert_eq!(diarization.status, PipelineStageStatus::Skipped);
+    assert_eq!(
+        repository.snapshot().unwrap().recordings[0].status,
+        RecordingStatus::Complete
+    );
 }
 
 #[test]
@@ -1495,6 +1473,11 @@ fn settings_update(output_directory: String) -> AppSettingsUpdate {
         provider_model: String::new(),
         provider_api_key: None,
         summary_prompt: "Summary".to_owned(),
+        transcription_engine: TranscriptionEngine::Local,
+        transcription_cloud_base_url: "https://api.openai.com/v1".to_owned(),
+        transcription_cloud_model: "whisper-1".to_owned(),
+        transcription_cloud_api_key: None,
+        speakers_enabled: true,
     }
 }
 

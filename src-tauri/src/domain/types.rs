@@ -268,6 +268,20 @@ pub struct AppSettings {
     pub(crate) provider_base_url: String,
     pub(crate) provider_model: String,
     pub(crate) summary_prompt: String,
+    pub(crate) transcription_engine: TranscriptionEngine,
+    pub(crate) transcription_cloud_base_url: String,
+    pub(crate) transcription_cloud_model: String,
+    pub(crate) transcription_cloud_api_key_configured: bool,
+    pub(crate) speakers_enabled: bool,
+    pub(crate) sortformer_ready: bool,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum TranscriptionEngine {
+    None,
+    Local,
+    Cloud,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -307,6 +321,11 @@ pub struct AppSettingsUpdate {
     pub(crate) provider_model: String,
     pub(crate) provider_api_key: Option<String>,
     pub(crate) summary_prompt: String,
+    pub(crate) transcription_engine: TranscriptionEngine,
+    pub(crate) transcription_cloud_base_url: String,
+    pub(crate) transcription_cloud_model: String,
+    pub(crate) transcription_cloud_api_key: Option<String>,
+    pub(crate) speakers_enabled: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

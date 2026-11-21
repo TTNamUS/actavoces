@@ -14,7 +14,7 @@ export const SettingsAiSection = (): JSX.Element => {
     <div class='flex flex-col gap-6'>
       <Card class='px-5'>
         <SettingRow
-          description='Summaries are generated after transcription using the provider below.'
+          description='Summaries and titles come from any OpenAI-compatible chat API: a cloud provider (OpenAI, Groq, OpenRouter) or a local server such as Ollama. No local install is required.'
           label='Generate summaries'
         >
           <Switch

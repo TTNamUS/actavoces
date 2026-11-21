@@ -1,14 +1,13 @@
-import { type Signal, useComputed, useSignal } from '@preact/signals';
+import { type Signal, useSignal } from '@preact/signals';
 import { listen } from '@tauri-apps/api/event';
 import { useEffect } from 'preact/hooks';
 import {
   bootstrapWorkerRuntime,
   getAppSnapshot,
   setupDiarizationRuntime,
-  skipDiarizationSetup,
+  setupSpeakerLabels,
   writeDiagnosticLog
 } from '../../../services/desktop/app.service';
-import { appSnapshotSignal } from '../../../stores/app.store';
 import type {
   AppSettingsUpdate,
   AppSnapshot,
@@ -40,18 +39,6 @@ export const useAppRuntime = ({
   const setupProgress = useSignal<WorkerSetupProgress>(initialSetupProgress);
   const sortformerProgress = useSignal<SortformerSetupProgress | null>(null);
   const setupRunning = useSignal(false);
-  const bootstrapRequested = useSignal(false);
-  const workerSetupReady = useComputed(
-    () => appSnapshotSignal.value.desktop.workerSetupStatus === 'ready'
-  );
-  const needsDiarizationSetup = useComputed(
-    () =>
-      workerSetupReady.value &&
-      appSnapshotSignal.value.settings.diarizationBackend === 'pyannote' &&
-      !appSnapshotSignal.value.settings.diarizationRuntimeReady &&
-      !appSnapshotSignal.value.settings.diarizationSetupSkipped
-  );
-  const setupReady = useComputed(() => workerSetupReady.value && !needsDiarizationSetup.value);
 
   const loadSnapshot = async (attempts = 1) => {
     loading.value = true;
@@ -143,62 +130,57 @@ export const useAppRuntime = ({
     }
   };
 
-  const skipDiarization = async () => {
-    setupRunning.value = true;
+  const installSpeakerLabels = async () => {
     setError(null);
+    sortformerProgress.value = {
+      status: 'downloading',
+      step: 'Preparing speaker labels',
+      progress: 0,
+      error: null
+    };
 
     try {
-      setSnapshot(await skipDiarizationSetup());
+      setSnapshot(await setupSpeakerLabels());
     } catch (error) {
-      setError(errorMessage(error, 'Unable to skip speaker diarization setup'));
-    } finally {
-      setupRunning.value = false;
+      setError(errorMessage(error, 'Unable to prepare speaker labels'));
     }
   };
 
   useRuntimeEffects({
-    bootstrapRequested,
     loading,
     setupProgress,
     sortformerProgress,
     setError,
     setSnapshot,
-    loadSnapshot,
-    runBootstrap
+    loadSnapshot
   });
 
   return {
     setupProgress,
     sortformerProgress,
     setupRunning,
-    setupReady,
-    needsDiarizationSetup,
     actions: {
-      retrySetup: runBootstrap,
-      setupDiarization,
-      skipDiarizationSetup: skipDiarization
+      installLocalRuntime: runBootstrap,
+      installSpeakerLabels,
+      installPyannote: setupDiarization
     }
   };
 };
 
 const useRuntimeEffects = ({
-  bootstrapRequested,
   loading,
   setupProgress,
   sortformerProgress,
   setError,
   setSnapshot,
-  loadSnapshot,
-  runBootstrap
+  loadSnapshot
 }: {
-  bootstrapRequested: Signal<boolean>;
   loading: Signal<boolean>;
   setupProgress: Signal<WorkerSetupProgress>;
   sortformerProgress: Signal<SortformerSetupProgress | null>;
   setError: (message: string | null) => void;
   setSnapshot: (snapshot: AppSnapshot) => void;
   loadSnapshot: (attempts?: number) => Promise<void>;
-  runBootstrap: () => Promise<void>;
 }) => {
   useEffect(() => {
     if (!isTauriRuntime()) {
@@ -275,17 +257,4 @@ const useRuntimeEffects = ({
 
     void loadSnapshot(20);
   }, []);
-
-  useEffect(() => {
-    if (
-      !isTauriRuntime() ||
-      bootstrapRequested.value ||
-      appSnapshotSignal.value.settings.databasePath.trim().length === 0
-    ) {
-      return;
-    }
-
-    bootstrapRequested.value = true;
-    void runBootstrap();
-  }, [appSnapshotSignal.value.settings.databasePath]);
 };

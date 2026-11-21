@@ -18,8 +18,6 @@ pub async fn update_app_settings(
     input: AppSettingsUpdate,
 ) -> Result<AppSnapshot, String> {
     let launch_at_login = input.launch_at_login;
-    let prepare_sortformer = input.diarization_backend == DiarizationBackend::Sortformer;
-    let model_storage_directory = input.model_storage_directory.clone();
     let app_for_settings = app.clone();
 
     tauri::async_runtime::spawn_blocking(move || {
@@ -50,36 +48,65 @@ pub async fn update_app_settings(
         snapshot.settings.overlay_display_mode,
     )?;
     emit_snapshot_update(&app, &snapshot);
-    if prepare_sortformer {
-        spawn_sortformer_diarization_setup(app.clone(), model_storage_directory);
-    }
     spawn_pipeline_processing(app);
 
     Ok(snapshot)
 }
 
-fn spawn_sortformer_diarization_setup(app: tauri::AppHandle, model_storage_directory: String) {
+#[tauri::command]
+pub async fn setup_speaker_labels(app: tauri::AppHandle) -> Result<AppSnapshot, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let model_storage_directory = PathBuf::from(model_storage_directory);
+        let state = app.state::<ActavocesState>();
+        let model_storage_directory = {
+            let repository = state.repository()?;
+
+            PathBuf::from(
+                repository
+                    .settings()
+                    .map_err(|error| error.to_string())?
+                    .model_storage_directory,
+            )
+        };
         let result = prepare_sortformer_diarization(&model_storage_directory, |progress| {
             let _ = app.emit("sortformer-diarization-progress", progress);
         });
 
-        match result {
-            Ok(()) => (),
-            Err(error) => {
-                let _ = app.emit(
-                    "sortformer-diarization-progress",
-                    SortformerSetupProgress {
-                        status: SortformerSetupStatus::Failed,
-                        step: "Sortformer voice attribution setup failed".to_owned(),
-                        progress: None,
-                        error: Some(error),
-                    },
-                );
-            }
+        if let Err(error) = &result {
+            let _ = app.emit(
+                "sortformer-diarization-progress",
+                SortformerSetupProgress {
+                    status: SortformerSetupStatus::Failed,
+                    step: "Speaker label setup failed".to_owned(),
+                    progress: None,
+                    error: Some(error.clone()),
+                },
+            );
         }
-    });
+        result?;
+
+        let snapshot = state
+            .repository()?
+            .snapshot()
+            .map_err(|error| error.to_string())?;
+
+        emit_snapshot_update(&app, &snapshot);
+
+        Ok(snapshot)
+    })
+    .await
+    .map_err(|error| format!("Speaker label setup task failed: {error}"))?
+}
+
+#[tauri::command]
+pub fn clear_transcription_cloud_api_key(
+    state: tauri::State<'_, ActavocesState>,
+) -> Result<AppSnapshot, String> {
+    let mut repository = state.repository()?;
+
+    repository
+        .clear_transcription_cloud_api_key()
+        .map_err(|error| error.to_string())?;
+    repository.snapshot().map_err(|error| error.to_string())
 }
 
 #[tauri::command]

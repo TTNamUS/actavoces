@@ -7,7 +7,6 @@ export const LIBRARY_PATH = '/';
 export const ACTIVITY_PATH = '/activity';
 export const ASK_PATH = '/ask';
 export const SETTINGS_PATH = '/settings';
-export const SETUP_PATH = '/setup';
 
 export const navRoutes: NavRoute[] = [
   { path: LIBRARY_PATH, label: 'Library' },

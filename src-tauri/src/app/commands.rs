@@ -2,6 +2,7 @@ pub(crate) mod content;
 pub(crate) mod models;
 pub(crate) mod overlay;
 pub(crate) mod pipeline;
+pub(crate) mod pipeline_cloud;
 pub(crate) mod recordings;
 pub(crate) mod settings;
 pub(crate) mod snapshot;

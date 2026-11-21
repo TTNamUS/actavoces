@@ -1,10 +1,14 @@
+use std::path::Path;
+
 use rusqlite::{params, OptionalExtension};
 
+use crate::diarization::SORTFORMER_MODEL_FILE;
 use crate::domain::types::*;
 use crate::settings::{
     recommendation::current_model_recommendation, settings_pairs, summary_provider_configured_for,
-    validate_settings, DEFAULT_SUMMARY_PROMPT, HUGGING_FACE_TOKEN_SETTING,
-    SUMMARY_PROVIDER_API_KEY_SETTING,
+    validate_settings, DEFAULT_CLOUD_BASE_URL, DEFAULT_CLOUD_TRANSCRIPTION_MODEL,
+    DEFAULT_SUMMARY_PROMPT, HUGGING_FACE_TOKEN_SETTING, SUMMARY_PROVIDER_API_KEY_SETTING,
+    TRANSCRIPTION_CLOUD_API_KEY_SETTING,
 };
 use crate::storage::repository::AppRepository;
 use crate::utils::{
@@ -55,6 +59,23 @@ impl AppRepository {
         let whisper_model = persisted_whisper_model
             .clone()
             .unwrap_or_else(|| model_recommendation.recommended_model.clone());
+        let model_storage_directory =
+            get_value("modelStorageDirectory", &default_model_storage_root());
+        let sortformer_ready = Path::new(&model_storage_directory)
+            .join(SORTFORMER_MODEL_FILE)
+            .exists();
+        let diarization_runtime_ready = parse_bool(&get_value("diarizationRuntimeReady", "false"));
+        let transcription_engine = match get_optional_value("transcriptionEngine") {
+            Some(value) => serde_json::from_str(&value).unwrap_or(TranscriptionEngine::None),
+            None if runtime_status.worker_setup_status == WorkerSetupStatus::Ready => {
+                TranscriptionEngine::Local
+            }
+            None => TranscriptionEngine::None,
+        };
+        let speakers_enabled = match get_optional_value("speakersEnabled") {
+            Some(value) => parse_bool(&value),
+            None => sortformer_ready || diarization_runtime_ready,
+        };
 
         Ok(AppSettings {
             output_directory: get_value("outputDirectory", &default_records_root()),
@@ -77,10 +98,7 @@ impl AppRepository {
             transcription_language: get_value("transcriptionLanguage", "auto"),
             transcription_context: get_value("transcriptionContext", ""),
             compute_type: get_value("computeType", "auto"),
-            model_storage_directory: get_value(
-                "modelStorageDirectory",
-                &default_model_storage_root(),
-            ),
+            model_storage_directory,
             diarization_backend: serde_json::from_str(&get_value(
                 "diarizationBackend",
                 "\"sortformer\"",
@@ -96,13 +114,28 @@ impl AppRepository {
             max_speakers: parse_optional_number(&get_value("maxSpeakers", "")),
             hugging_face_token_configured,
             diarization_setup_skipped: parse_bool(&get_value("diarizationSetupSkipped", "false")),
-            diarization_runtime_ready: parse_bool(&get_value("diarizationRuntimeReady", "false")),
+            diarization_runtime_ready,
             summary_provider_configured,
             provider_api_key_configured,
             summary_enabled,
             provider_base_url,
             provider_model,
             summary_prompt: get_value("summaryPrompt", DEFAULT_SUMMARY_PROMPT),
+            transcription_engine,
+            transcription_cloud_base_url: get_value(
+                "transcriptionCloudBaseUrl",
+                DEFAULT_CLOUD_BASE_URL,
+            ),
+            transcription_cloud_model: get_value(
+                "transcriptionCloudModel",
+                DEFAULT_CLOUD_TRANSCRIPTION_MODEL,
+            ),
+            transcription_cloud_api_key_configured: secret_configured(&get_value(
+                TRANSCRIPTION_CLOUD_API_KEY_SETTING,
+                "",
+            )),
+            speakers_enabled,
+            sortformer_ready,
         })
     }
 
@@ -115,6 +148,10 @@ impl AppRepository {
         let hugging_face_token = self.updated_secret(
             HUGGING_FACE_TOKEN_SETTING,
             input.hugging_face_token.as_deref(),
+        )?;
+        let transcription_cloud_api_key = self.updated_secret(
+            TRANSCRIPTION_CLOUD_API_KEY_SETTING,
+            input.transcription_cloud_api_key.as_deref(),
         )?;
         let provider_api_key_configured = secret_configured(&provider_api_key);
         let hugging_face_token_configured = secret_configured(&hugging_face_token);
@@ -150,6 +187,10 @@ impl AppRepository {
         for (key, value) in [
             (SUMMARY_PROVIDER_API_KEY_SETTING, provider_api_key),
             (HUGGING_FACE_TOKEN_SETTING, hugging_face_token),
+            (
+                TRANSCRIPTION_CLOUD_API_KEY_SETTING,
+                transcription_cloud_api_key,
+            ),
         ] {
             transaction.execute(
                 "
@@ -190,6 +231,14 @@ impl AppRepository {
     pub(crate) fn clear_summary_provider_api_key(&mut self) -> rusqlite::Result<()> {
         self.set_setting(SUMMARY_PROVIDER_API_KEY_SETTING, "")?;
         self.update_summary_provider_status(false)
+    }
+
+    pub(crate) fn read_transcription_cloud_api_key(&self) -> rusqlite::Result<Option<String>> {
+        self.read_secret(TRANSCRIPTION_CLOUD_API_KEY_SETTING)
+    }
+
+    pub(crate) fn clear_transcription_cloud_api_key(&mut self) -> rusqlite::Result<()> {
+        self.set_setting(TRANSCRIPTION_CLOUD_API_KEY_SETTING, "")
     }
 
     pub(crate) fn clear_hugging_face_token(&mut self) -> rusqlite::Result<()> {

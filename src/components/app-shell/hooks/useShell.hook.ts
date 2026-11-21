@@ -1,6 +1,5 @@
-import { useEffect } from 'preact/hooks';
 import { formatClock } from '../../../utils/format';
-import { ACTIVITY_PATH, isRouteActive, navRoutes, SETUP_PATH } from '../../../utils/routes';
+import { ACTIVITY_PATH, isRouteActive, navRoutes } from '../../../utils/routes';
 import { useElapsedSeconds } from '../../shared/hooks/useElapsedSeconds.hook';
 import { useTheme } from '../../shared/hooks/useTheme.hook';
 import { useAppContext } from '../context/AppContext';
@@ -10,20 +9,9 @@ export const useShell = () => {
   const app = useAppContext();
   const theme = useTheme();
   const { location, navigateTo } = app.navigation;
-  const setupReady = app.status.setupReady.value;
   const snapshot = app.data.snapshot.value;
   const isRecording = app.status.isRecording.value;
   const elapsed = useElapsedSeconds(snapshot.activeRecording?.startedAt ?? null);
-
-  useEffect(() => {
-    if (!setupReady && location !== SETUP_PATH) {
-      navigateTo(SETUP_PATH, { replace: true });
-    }
-
-    if (setupReady && location === SETUP_PATH) {
-      navigateTo('/', { replace: true });
-    }
-  }, [setupReady, location]);
 
   const activeJobCount = app.data.activeJobs.value.length;
   const sortformer = app.data.sortformerProgress.value;
@@ -41,13 +29,11 @@ export const useShell = () => {
       })),
       appVersion: app.data.appVersion.value,
       hotkey: app.data.displayHotkey(snapshot.settings.hotkey),
-      worker: workerPillInfo(snapshot.desktop),
+      worker: workerPillInfo(snapshot.desktop, snapshot.settings),
       elapsedLabel: formatClock(elapsed),
       themeIsDark: theme.resolved === 'dark'
     },
     status: {
-      showChrome: setupReady && location !== SETUP_PATH,
-      setupReady,
       isRecording,
       loading: app.status.loading.value
     },
@@ -60,7 +46,7 @@ export const useShell = () => {
     },
     actions: {
       toggleTheme: theme.toggle,
-      openSystemSettings: () => navigateTo('/settings/system'),
+      openSystemSettings: () => navigateTo('/settings/transcription'),
       startRecording: app.actions.startRecording,
       stopRecording: app.actions.stopRecording,
       saveSettings: app.actions.saveSettings,

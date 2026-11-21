@@ -70,7 +70,13 @@ const initialSnapshot: AppSnapshot = {
     providerBaseUrl: 'https://api.openai.com/v1',
     providerModel: '',
     summaryPrompt:
-      'Summarize the conversation. Then provide bullet lists for decisions and action items.'
+      'Summarize the conversation. Then provide bullet lists for decisions and action items.',
+    transcriptionEngine: 'none',
+    transcriptionCloudBaseUrl: 'https://api.openai.com/v1',
+    transcriptionCloudModel: 'whisper-1',
+    transcriptionCloudApiKeyConfigured: false,
+    speakersEnabled: false,
+    sortformerReady: false
   }
 };
 

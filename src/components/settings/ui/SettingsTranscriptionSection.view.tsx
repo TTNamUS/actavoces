@@ -5,9 +5,11 @@ import { FieldHint } from '../../shared/ui/FieldHint.view';
 import { SectionTitle } from '../../shared/ui/SectionTitle.view';
 import { Select } from '../../shared/ui/Select.view';
 import { SettingRow } from '../../shared/ui/SettingRow.view';
-import { StatusBadge } from '../../shared/ui/StatusBadge.view';
 import { useSettingsContext } from '../context/SettingsContext';
 import { GlossaryEditor } from './GlossaryEditor.view';
+import { SettingsCloudFields } from './SettingsCloudFields.view';
+import { SettingsLocalModel } from './SettingsLocalModel.view';
+import { SettingsRuntimeCard } from './SettingsRuntimeCard.view';
 
 export const SettingsTranscriptionSection = (): JSX.Element => {
   const { actions, data, status } = useSettingsContext();
@@ -29,66 +31,40 @@ export const SettingsTranscriptionSection = (): JSX.Element => {
             />
           </SettingRow>
         ))}
-        {data.modelFolder === null ? null : (
+        {data.engine === 'local' && data.modelFolder !== null ? (
           <SettingRow description={data.modelFolder.value} label={data.modelFolder.label}>
             <Button onClick={data.modelFolder.onSelect} variant='outline'>
               Choose
             </Button>
           </SettingRow>
-        )}
+        ) : null}
       </Card>
 
-      <section class='flex flex-col gap-3'>
-        <SectionTitle hint={data.model.recommendation.reason}>Model</SectionTitle>
-        <Card class='flex flex-col gap-4 p-5'>
-          <div class='flex items-center justify-between gap-4'>
-            <div class='flex flex-col gap-0.5'>
-              <span class='text-[13px] text-ink-3'>Selected</span>
-              <span class='font-mono text-sm'>{data.model.name}</span>
-            </div>
-            <StatusBadge label={data.model.badge.label} status={data.model.badge.status} />
-          </div>
-          <p class='text-[13px] text-ink-2'>
-            Recommended for this machine:{' '}
-            <span class='font-mono'>{data.model.recommendation.recommendedModel}</span>
-          </p>
-          {data.model.recommendation.userOverridden ? (
-            <FieldHint
-              hint={{
-                tone: 'warning',
-                text: 'Manual override active. The selected model differs from the current recommendation.'
-              }}
-            />
-          ) : null}
-          <div class='flex gap-2'>
-            <Button disabled={status.loading} onClick={actions.refreshModels} variant='outline'>
-              Refresh models
-            </Button>
-            <Button
-              disabled={status.installingModel || data.model.installed}
-              onClick={actions.installModel}
-              variant='primary'
-            >
-              Install selected
-            </Button>
-          </div>
-          {data.model.inventory.length === 0 ? null : (
-            <ul class='flex flex-col'>
-              {data.model.inventory.map((model) => (
-                <li
-                  class='flex items-center justify-between gap-3 border-line border-t py-2 text-[13px]'
-                  key={model.name}
-                >
-                  <span class='font-mono'>{model.name}</span>
-                  <span class='text-ink-3'>{model.state}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </section>
+      {data.engine === 'cloud' ? (
+        <section class='flex flex-col gap-3'>
+          <SectionTitle>Cloud provider</SectionTitle>
+          <SettingsCloudFields />
+        </section>
+      ) : null}
 
-      <GlossaryEditor />
+      {data.engine === 'local' ? (
+        <>
+          <section class='flex flex-col gap-3'>
+            <SectionTitle>Local runtime</SectionTitle>
+            <SettingsRuntimeCard
+              actionLabel='Install local runtime'
+              description='Python, faster-whisper and the selected model. Downloads several hundred MB.'
+              disabled={status.setupRunning}
+              info={data.localRuntime}
+              onInstall={actions.installLocalRuntime}
+              title='Local transcription runtime'
+            />
+          </section>
+          <SettingsLocalModel />
+        </>
+      ) : null}
+
+      {data.engine === 'none' ? null : <GlossaryEditor />}
     </div>
   );
 };
